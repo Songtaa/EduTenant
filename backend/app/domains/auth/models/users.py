@@ -1,0 +1,24 @@
+from app.db.base_class import APIBase
+from pydantic import EmailStr
+from sqlalchemy import Column, String
+from app.domains.auth.models.user_role import UserRole
+from sqlmodel import Field, Relationship
+from uuid import uuid4, UUID
+from typing import List
+# from app.domains.auth.models.role import Role
+
+
+class User(APIBase, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    email: EmailStr = Field(sa_column=Column(String(255), nullable=False, unique=True))
+    password: str = Field(nullable=False, max_length=255)
+    is_active: bool = Field(default=True)
+    is_superuser: bool = False
+    full_name: str | None = Field(default=None, max_length=255)
+    
+    # role: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
+
+    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole, sa_relationship_kwargs={"viewonly": True})
+    user_roles: List["UserRole"] = Relationship(back_populates="user") 
+    user_permissions: List["UserPermission"] = Relationship(back_populates='user')
+

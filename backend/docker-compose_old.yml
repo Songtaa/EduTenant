@@ -1,0 +1,134 @@
+# version: "3.9"
+# docker-compose --env-file ./docker.env up -d --build
+# docker-compose --env-file ./docker.env down
+
+services:
+  pgadmin:
+    build:
+      context: ./pgadmin
+      dockerfile: dockerfile
+    container_name: kace-mobile-pgadmin
+    restart: always
+    # expose:
+    #   - 80
+    ports:
+      - "8081:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - kace-mobile-network
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    container_name: kace-mobile-postgres
+    restart: always
+    networks:
+      - kace-mobile-network
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+
+  # redis:
+  #   restart: always
+  #   image: redis:latest
+  #   container_name: kace-mobile-redis-server
+  #   command: redis-server --save 60 1 --loglevel warning
+  #   privileged: true
+  #   expose:
+  #     - 6379
+  #   networks:
+  #     - kace-mobile-network
+  #   volumes:
+  #     - redis_data:/data
+  #   env_file:
+  #     - docker.env
+  #   environment:
+  #     - ALLOW_EMPTY_PASSWORD=yes
+
+  app:
+    image: master-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: kace-mobile-app
+    # expose:
+    #   - 80
+    ports:
+      - "8000:8000"
+    networks:
+      - kace-mobile-network
+    # volumes:
+    #   - upload_data:/home/app/web/uploads
+    #   - static_data:/home/app/web/static
+    env_file:
+      - docker.env
+    depends_on:
+      - postgres
+      # - redis
+    environment:
+      # REDIS_HOST: redis
+      # REDIS_PORT: 6379
+      DOCKER: "true"
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}"
+      # DATABASE_URL: "postgres://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}"
+
+
+  # worker:
+  #   image: master-image
+  #   container_name: kace-mobile-redis-worker
+  #   depends_on:
+  #     - redis
+  #     - app
+  #   command: python3 -m app.rds.worker # rq worker --name worker --url redis://redis:6379/0
+  #   networks:
+  #     - kace-mobile-network
+  #   env_file:
+  #     - docker.env
+  #   environment:
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #     DOCKER: "true"
+  #     DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}"
+  #   volumes_from:
+  #     - app:rw
+  #   restart: always
+
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: dockerfile
+  #   restart: always
+  #   ports:
+  #     - ${WEB_PORT}:2000
+  #     - ${REDIS_PORT}:2001
+  #     - ${PGADMIN_PORT}:2002
+  #     - ${POSTGRES_PORT}:2003
+  #   networks:
+  #     - kace-mobile-network
+  #   depends_on:
+  #     - app
+  #   volumes_from:
+  #     - app:rw
+
+volumes:
+  # static_data:
+  # upload_data:
+  pgadmin_data:
+  postgres_data:
+  redis_data:
+    driver: local
+
+networks:
+  kace-mobile-network:
+    driver: bridge

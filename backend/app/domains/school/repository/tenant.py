@@ -1,0 +1,93 @@
+# app/repositories/tenant.py
+from uuid import UUID
+
+from fastapi import HTTPException
+from sqlalchemy import select
+from app.domains.school.models.school import School
+from sqlmodel import Session
+from app.domains.school.models import Tenant
+from app.crud.base import BaseRepository
+
+# app/repositories/tenant.py
+from typing import Any, List, Optional, Dict
+from app.domains.school.schemas.tenant import TenantCreate, TenantUpdate
+
+
+class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
+    def __init__(self, session: Session):
+        super().__init__(Tenant, session)
+    
+    def get_by_domain(self, domain: str) -> Optional[Tenant]:
+        """Get tenant by domain name (case-sensitive)"""
+        return self.session.exec(
+            select(Tenant).where(Tenant.domain == domain)
+        ).first()
+    
+    def create_with_school(
+        self, 
+        tenant_data: TenantCreate, 
+        school_data: Dict[str, Any]
+    ) -> Tenant:
+        """
+        Creates a new tenant along with a default school.
+        
+        Args:
+            tenant_data: Validated tenant creation data
+            school_data: Raw school data (will be validated in service layer)
+            
+        Returns:
+            The created Tenant with associated School
+            
+        Note:
+            In production, the school creation would happen in a separate
+            tenant-specific database session
+        """
+        try:
+            # Create tenant
+            tenant = self.create(tenant_data)
+            
+            # Create default school (in same transaction for demo)
+            school = School(**school_data, tenant_id=tenant.id)
+            self.session.add(school)
+            self.session.commit()
+            self.session.refresh(tenant)
+            
+            return tenant
+            
+        except Exception as e:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create tenant: {str(e)}"
+            )
+    
+    def search_tenants(
+        self,
+        search_term: Optional[str] = None,
+        active_only: bool = True,
+        skip: int = 0,
+        limit: int = 100
+    ) -> List[Tenant]:
+        """
+        Search tenants with filtering options
+        
+        Args:
+            search_term: Search in name or domain
+            active_only: Filter only active tenants
+            skip: Pagination offset
+            limit: Pagination limit
+        """
+        query = select(Tenant)
+        
+        if active_only:
+            query = query.where(Tenant.is_active is True)
+            
+        if search_term:
+            query = query.where(
+                (Tenant.name.ilike(f"%{search_term}%")) |
+                (Tenant.domain.ilike(f"%{search_term}%"))
+            )
+            
+        return self.session.exec(
+            query.offset(skip).limit(limit)
+        ).all()
