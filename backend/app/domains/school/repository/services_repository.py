@@ -2,11 +2,10 @@ from typing import List, Optional, Type
 from uuid import UUID
 
 from sqlmodel import select
-# from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.domains.kace.models.services import Service
-from app.domains.kace.schemas.services_schemas import ServiceBase, ServiceRead,ServiceCreate, ServiceUpdate, ServiceSchema
+from app.domains.school.models.services import Service
+from app.domains.school.schemas.services_schemas import ServiceBase, ServiceRead, ServiceCreate, ServiceUpdate, ServiceSchema
 from sqlalchemy.orm.exc import NoResultFound
 from sqlmodel import select
 from app.utils.security import Security

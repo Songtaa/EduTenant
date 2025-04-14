@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kace-mobile"
+name = "app"
 version = "0.1.0"
 description = "Mobile School Management System"
 authors = ["Songtaa <songtaa9@gmail.com>"]
@@ -26,11 +26,11 @@ fastapi-mail = "^1.4.1"
 alembic = "^1.13.3"
 passlib = "^1.7.4"
 pyjwt = "^2.9.0"
-sqlmodel = "^0.0.22"
 aioredis = "^2.0.1"
 rq = "^2.0.0"
 asyncpg = "^0.30.0"
 pendulum = "^3.0.0"
+sqlmodel = "^0.0.24"
 
 
 [build-system]

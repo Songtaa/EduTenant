@@ -7,6 +7,8 @@ from app.db.base_class import APIBase
 class TenantBase(APIBase):
     name: str
     domain: str
+    is_active: bool
+    billing_tier: str
 
 class TenantCreate(TenantBase):
     pass
@@ -18,8 +20,12 @@ class TenantUpdate(APIBase):
     is_active: Optional[bool] = None
     billing_tier: Optional[str] = None
 
-class TenantOut(TenantBase):
+class TenantRead(TenantBase):
     id: UUID
-    created_at: datetime
-    is_active: bool
-    billing_tier: str
+    
+    class Config:
+        orm_mode = True
+
+
+class TenantSchema(TenantRead):
+    pass

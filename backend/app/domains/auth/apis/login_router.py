@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi.responses import JSONResponse
 
-from app.db.session import get_session
+from app.db.session import get_master_session
 from fastapi import APIRouter, Depends, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -20,7 +20,7 @@ auth_router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 roleCheck = RoleChecker(['admin', 'user'])
 
 

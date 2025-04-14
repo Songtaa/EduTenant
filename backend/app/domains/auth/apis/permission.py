@@ -6,12 +6,12 @@ from typing import Annotated, List
 
 from app.domains.auth.schemas.permission import PermissionCreate, PermissionSchema, PermissionUpdate
 from app.domains.auth.services.permission import PermissionService
-from app.db.session import get_session
+from app.db.session import get_master_session
 
 
 router = APIRouter()
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 
 permission_router = APIRouter(
     prefix="/permissions",

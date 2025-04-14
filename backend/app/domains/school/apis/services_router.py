@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from app.db.session import get_session
-from app.domains.kace.services.services_service import (
+from app.db.session import get_master_session
+from app.domains.school.services.services_service import (
     Service,
     ServiceCreate,
     ServiceUpdate,
@@ -15,7 +15,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 service_router = APIRouter(prefix="/services", tags=["Services"])
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 
 
 @service_router.post("/", response_model=ServiceCreate)
@@ -47,7 +47,7 @@ async def get_all_services(
 @service_router.delete("/{_id}", status_code=204)
 async def delete_service(
     _id: UUID4,
-    session: AsyncSession = Depends(get_session),
+    session: sessionDep,
 ):
     _service = Service(session)
     return await _service.delete(_id)

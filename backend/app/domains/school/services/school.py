@@ -3,10 +3,10 @@ from typing import List
 from uuid import UUID
 from fastapi import HTTPException, Depends
 from sqlmodel import Session
-from app.schemas.school import SchoolCreate, SchoolUpdate, SchoolOut
-from app.repositories.school import SchoolRepository
+from app.domains.school.schemas.school import SchoolCreate, SchoolUpdate, SchoolOut
+from app.domains.school.repository.school import SchoolRepository
 from app.db.session import get_tenant_session
-from app.core.tenant_dependencies import get_tenant_id
+from app.config.tenant_dependencies import get_tenant_id
 
 class SchoolService:
     def __init__(self, session: Session, tenant_id: UUID):

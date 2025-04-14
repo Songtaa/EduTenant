@@ -5,6 +5,7 @@ from sqlmodel import Session, SQLModel, select
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 import sys
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from pydantic import BaseModel
 from app.db.base_class import Base
 
@@ -13,7 +14,7 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: type[ModelType], session: Session):
+    def __init__(self, model: type[ModelType], session: AsyncSession):
         """
         Base repository with CRUD operations
         Args:
@@ -32,25 +33,26 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             select(self.model).offset(skip).limit(limit)
         ).all()
 
-    def create(self, obj_in: CreateSchemaType) -> ModelType:
+   
+    async def create(self, obj_in: CreateSchemaType) -> ModelType:
         try:
-            obj_data = obj_in.dict()
+            obj_data = obj_in.model_dump()
             db_obj = self.model(**obj_data)
             self.session.add(db_obj)
-            self.session.commit()
-            self.session.refresh(db_obj)
+            await self.session.commit()
+            await self.session.refresh(db_obj)
             return db_obj
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise HTTPException(status_code=409, detail=str(e))
         except Exception as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail=f"{type(e).__name__}: {str(e)}"
             )
 
-    def update(
+    async def update(
         self, 
         *, 
         db_obj: ModelType,

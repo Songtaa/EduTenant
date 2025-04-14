@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from app.crud.base import CRUDBase
+from app.crud.base import BaseRepository
 from app.domains.auth.models.users import User
 from app.domains.auth.models.user_role import UserRole
 from app.domains.auth.schemas.user_schema import UserCreate, UserSchema, UserUpdate
@@ -13,11 +13,12 @@ from uuid import UUID
 from typing import List, Type
 
 
-class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+class CRUDUser(BaseRepository[User, UserCreate, UserUpdate]):
     pass
 
-
-users_form_actions = CRUDUser(User)
+async def some_function(session: AsyncSession):
+    users_form_actions = CRUDUser(User, session)
+# users_form_actions = CRUDUser(User)
 
 
 class UserRepository:
@@ -98,4 +99,6 @@ class UserRepository:
         self.session.add(user_role)
         self.session.commit()
         return {"message": "Role assigned successfully"}
+    
+    
 # user_repository = UserRepository()

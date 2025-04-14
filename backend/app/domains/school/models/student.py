@@ -1,11 +1,12 @@
 
 # app/models/school.py
+from typing import List
 from uuid import UUID
 from sqlalchemy import Column, String, ForeignKey
 from app.db.base_class import APIBase
 from sqlmodel import Field, Relationship
 from app.db.base_class import APIBase
-from app.domains.school.models.school import School
+# from app.domains.school.models.school import School
 
 
 class Student(APIBase, table=True):
@@ -17,4 +18,4 @@ class Student(APIBase, table=True):
     school_id: UUID = Field(foreign_key="schools.id")
     
     # Relationships
-    school: "School" = Relationship(back_populates="students")
+    school: List["School"] = Relationship(back_populates="students")

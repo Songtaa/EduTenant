@@ -5,8 +5,10 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from app.domains.school.models.school import School
 from sqlmodel import Session
-from app.domains.school.models import Tenant
+from app.domains.school.models.tenant import Tenant
 from app.crud.base import BaseRepository
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 
 # app/repositories/tenant.py
 from typing import Any, List, Optional, Dict
@@ -14,16 +16,15 @@ from app.domains.school.schemas.tenant import TenantCreate, TenantUpdate
 
 
 class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         super().__init__(Tenant, session)
     
-    def get_by_domain(self, domain: str) -> Optional[Tenant]:
-        """Get tenant by domain name (case-sensitive)"""
-        return self.session.exec(
-            select(Tenant).where(Tenant.domain == domain)
-        ).first()
+    async def get_by_domain(self, domain: str):
+        stmt = select(Tenant).where(Tenant.domain == domain)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
     
-    def create_with_school(
+    async def create_with_school(
         self, 
         tenant_data: TenantCreate, 
         school_data: Dict[str, Any]

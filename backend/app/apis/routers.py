@@ -12,9 +12,11 @@
 # from domains.kace.apis.profiles import profiles_router
 from app.domains.auth.apis.users_router import user_router
 from app.domains.auth.apis.login_router import auth_router
-from app.domains.kace.apis.services_router import service_router
+from app.domains.school.apis.services_router import service_router
 from app.domains.auth.apis.role import role_router
 from app.domains.auth.apis.permission import permission_router
+from app.domains.school.apis.tenant import tenant_router
+from app.domains.school.apis.school import school_router
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -35,3 +37,5 @@ router.include_router(user_router)
 router.include_router(service_router)
 router.include_router(role_router)
 router.include_router(permission_router)
+router.include_router(tenant_router)
+router.include_router(school_router)

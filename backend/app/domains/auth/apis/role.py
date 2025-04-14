@@ -7,16 +7,16 @@ from typing import Annotated, List
 from app.domains.auth.repository.role import RoleRepository
 from app.domains.auth.schemas.role import RoleCreate, RoleSchema, RoleUpdate
 from app.domains.auth.services.role import RoleService
-from app.db.session import get_session
+from app.db.session import get_master_session
 
 
 router = APIRouter()
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 
 role_router = APIRouter(
-    prefix="/role",
-    tags=["role"],
+    prefix="/roles",
+    tags=["Roles"],
     responses={404: {"description": "Not found"}},
 )
 

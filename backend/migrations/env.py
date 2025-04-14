@@ -2,14 +2,17 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from config.settings import settings
-from domains.auth.models.users import APIBase
-from domains.auth.models.permission import APIBase
-from domains.auth.models.role import APIBase
-from domains.auth.models.role_permission import APIBase
-from domains.auth.models.user_role import APIBase
-from domains.auth.models.user_permissions import APIBase
-from domains.kace.models.services import APIBase
+from app.config.settings import settings
+from app.domains.auth.models.users import APIBase
+from app.domains.auth.models.permission import APIBase
+from app.domains.auth.models.role import APIBase
+from app.domains.auth.models.role_permission import APIBase
+from app.domains.auth.models.user_role import APIBase
+from app.domains.auth.models.user_permissions import APIBase
+from app.domains.school.models.tenant import APIBase
+from app.domains.school.models.school import APIBase
+from app.domains.school.models.student import Student
+from app.domains.school.models.services import APIBase
 # from domains.kace.models.attendance import APIBase
 # from domains.kace.models.classes import APIBase
 # from domains.kace.models.class_students import APIBase

@@ -21,4 +21,4 @@ class SchoolUpdate(APIBase):
 class SchoolOut(SchoolBase):
     id: UUID
     tenant_id: UUID
-    created_at: datetime  # Added for consistency
+    created_at: datetime  

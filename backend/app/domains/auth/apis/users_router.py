@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from app.db.session import get_session
+from app.db.session import get_master_session
 from fastapi import APIRouter, Depends, status
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -15,11 +15,11 @@ from app.domains.auth.services.user_service import UserService
 
 user_router = APIRouter(
     prefix="/users",
-    tags=["User"],
+    tags=["Users"],
     responses={404: {"description": "Not found"}},
 )
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 access_token_bearer = Annotated[dict, Depends(AccessTokenBearer())]
 
 

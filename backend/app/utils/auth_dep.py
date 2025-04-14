@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.db.session import get_session
+from app.db.session import get_master_session
 from app.domains.auth.models.users import User
 from app.db.redis import token_in_blocklist
 
@@ -23,7 +23,7 @@ from app.utils.errors import (
     AccountNotVerified,
 )
 
-sessionDep = Annotated[AsyncSession, Depends(get_session)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 
 
 
