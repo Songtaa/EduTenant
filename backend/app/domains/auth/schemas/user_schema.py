@@ -1,5 +1,5 @@
 import uuid
-from pydantic import UUID4, EmailStr, Field
+from pydantic import UUID4, ConfigDict, EmailStr, Field
 from sqlmodel import SQLModel
 
 # from db.base_class import BaseModel
@@ -46,8 +46,9 @@ class UsersPublic(SQLModel):
 class UserInDBBase(UserBase):
     id: UUID4
 
-    class Config:
-        orm_mode = True
+    # class Config:
+    #     orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserSchema(UserInDBBase):

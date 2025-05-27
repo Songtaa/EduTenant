@@ -27,6 +27,9 @@ class Base(SQLModel):
 
 
 class APIBase(Base):  # `table=True` makes it a table model in SQLModel
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
     created_date: Optional[datetime] = Field(
         default_factory=datetime.now, nullable=False
     )

@@ -1,8 +1,8 @@
-import aioredis
+import redis
 from app.config.settings import settings
 
 
-token_blocklist = aioredis.StrictRedis(
+token_blocklist = redis.StrictRedis(
     host=settings.REDIS_HOST,
     port=settings.REDIS_PORT,
     db=0

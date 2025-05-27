@@ -17,5 +17,5 @@ class Student(APIBase, table=True):
     grade_level: str = Field(max_length=50)
     school_id: UUID = Field(foreign_key="schools.id")
     
-    # Relationships
+    
     school: List["School"] = Relationship(back_populates="students")
