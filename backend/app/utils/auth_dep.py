@@ -4,9 +4,12 @@ from fastapi import Depends, Request, status
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
+from app.domains.auth.repository.login_repository import TokenBlocklistRepository
+# from app.domains.auth.repository.token_blocklist import TokenRepository
+from app.domains.auth.services.token import TokenService
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.db.session import get_master_session
+from app.db.session import db_session_dependency
 from app.domains.auth.models.users import User
 from app.db.redis import token_in_blocklist
 
@@ -23,25 +26,27 @@ from app.utils.errors import (
     AccountNotVerified,
 )
 
-sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
-
+# sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
+sessionDep = Annotated[AsyncSession, Depends(db_session_dependency)]
 
 
 class TokenBearer(HTTPBearer):
-    def __init__(self, auto_error=True):
+    def __init__(self, auto_error: bool = True):
         super().__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
         creds = await super().__call__(request)
-
         token = creds.credentials
-
         token_data = Security.decode_token(token)
 
         if not self.token_valid(token):
-            raise InvalidToken() 
+            raise InvalidToken()
 
-        if await token_in_blocklist(token_data["jti"]):
+        
+        token_repo = TokenBlocklistRepository(request.state.session)
+        token_service = TokenService(token_repo)
+
+        if not await token_service.verify_token_not_blocklisted(token_data["jti"]):
             raise InvalidToken()
 
         self.verify_token_data(token_data)
@@ -69,18 +74,44 @@ class RefreshTokenBearer(TokenBearer):
             raise RefreshTokenRequired()
 
 
+# async def get_current_user(
+#     session: sessionDep,
+#     token_details: dict = Depends(AccessTokenBearer()),
+    
+# ):
+#     user_email = token_details["user"]["email"]
+
+#     user_service = UserService(session)
+
+#     user = await user_service.repository.get_user_by_email(user_email)
+
+#     return user
+
 async def get_current_user(
     session: sessionDep,
-    token_details: dict = Depends(AccessTokenBearer()),
-    
-):
-    user_email = token_details["user"]["email"]
+    token_data: dict = Depends(AccessTokenBearer()),
+) -> User:
+    tenant = token_data.get("tenant")  # May be None for superusers
+    jti = token_data.get("jti")
 
+    blocklist_repo = TokenBlocklistRepository(session)
+    if await blocklist_repo.is_token_blocked(jti, tenant):
+        raise HTTPException(status_code=401, detail="Token has been revoked")
+
+    user_email = token_data["user"]["email"]
     user_service = UserService(session)
-
     user = await user_service.repository.get_user_by_email(user_email)
 
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
     return user
+
+
+def SuperuserRequired(current_user: User = Depends(get_current_user)):
+    if not getattr(current_user, "is_superuser", False):
+        raise HTTPException(status_code=403, detail="Superuser access required")
+    return current_user
 
 
 class RoleChecker:

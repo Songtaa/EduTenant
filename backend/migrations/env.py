@@ -11,8 +11,9 @@ from app.domains.auth.models.user_role import APIBase
 from app.domains.auth.models.user_permissions import APIBase
 from app.domains.school.models.tenant import APIBase
 from app.domains.school.models.school import APIBase
-from app.domains.school.models.student import Student
+from app.domains.school.models.student import APIBase
 from app.domains.school.models.services import APIBase
+from app.domains.auth.models.token_blocklist import APIBase
 # from domains.kace.models.attendance import APIBase
 # from domains.kace.models.classes import APIBase
 # from domains.kace.models.class_students import APIBase

@@ -29,7 +29,8 @@ class UserService:
 
         created_user = await self.repository.create_user(user_data)
 
-        return UserSchema(**created_user.__dict__)
+        # return UserSchema(**created_user.__dict__)
+        return UserSchema.from_orm(created_user)
 
     async def get_all(self) -> List[Optional[UserSchema]]:
         return await self.repository.get_all()

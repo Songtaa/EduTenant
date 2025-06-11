@@ -44,3 +44,9 @@ class RefreshTokenResponse(BaseModel):
     token_type: Optional[str]
     refresh_token: Optional[str]
     status: Optional[str]
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    # token_type: str = "bearer"

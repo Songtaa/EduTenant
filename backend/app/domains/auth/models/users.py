@@ -9,6 +9,9 @@ from typing import List
 
 
 class User(APIBase, table=True):
+    __tablename__ = "users"
+    # __table_args__ = {'schema': 'public'}
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     email: EmailStr = Field(sa_column=Column(String(255), nullable=False, unique=True))
     password: str = Field(nullable=False, max_length=255)
@@ -21,4 +24,5 @@ class User(APIBase, table=True):
     roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole, sa_relationship_kwargs={"viewonly": True})
     user_roles: List["UserRole"] = Relationship(back_populates="user") 
     user_permissions: List["UserPermission"] = Relationship(back_populates='user')
+    tokens: List["TokenBlocklist"] = Relationship(back_populates="user")
 

@@ -45,100 +45,66 @@ class Security:
         hash = pwd_context.hash(password)
         return hash
 
-    # Generate access token function
-    # @staticmethod
-    # def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    #     to_encode = data.copy()
-    #     if expires_delta:
-    #         expire = datetime.now(tz=timezone.utc) + expires_delta
-    #     else:
-    #         expire = datetime.now(tz=timezone.utc) + timedelta(
-    #             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    #         )
-    #     to_encode.update({"exp": expire})
-    #     encoded_jwt = jwt.encode(
-    #         to_encode, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM
-    #     )
-    #     return encoded_jwt
-
-    # Generate Access token function
     @staticmethod
     def create_access_token(
-        user_data: dict, expiry: timedelta = None, refresh: bool = False
-    ):
-        payload = {}
+        user_data: dict,
+        expiry: timedelta = None,
+        refresh: bool = False
+    ) -> str:
+        """
+        Create a JWT token with tenant info.
+        """
+        jti = str(uuid.uuid4())
+        now = datetime.now(tz=timezone.utc)
 
-        payload["user"] = user_data
-        payload["exp"] = datetime.now() + (
-            expiry
-            if expiry is not None
-            else timedelta(seconds=settings.ACCESS_TOKEN_EXPIRY)
-        )
-        payload["jti"] = str(uuid.uuid4())
+        token_expiry = now + (expiry or timedelta(seconds=settings.ACCESS_TOKEN_EXPIRY))
 
-        payload["refresh"] = refresh
+        payload = {
+            "sub": str(user_data.get("user_id")),
+            "email": user_data.get("email"),
+            "tenant": user_data.get("tenant"),
+            "jti": jti,
+            "refresh": refresh,
+            "exp": token_expiry,
+        }
 
-        token = jwt.encode(
-            payload=payload, key=settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-        )
-
-        return token
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     # decode token
     @staticmethod
     def decode_token(token: str) -> dict:
         try:
-            token_data = jwt.decode(
-                jwt=token, key=settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            return jwt.decode(
+                token,
+                key=settings.SECRET_KEY,
+                algorithms=[settings.JWT_ALGORITHM]
             )
-
-            return token_data
-
-        except jwt.PyJWTError:
-            # logging(e)
-            logging.error("Exception occurred", exc_info=True)
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.JWTError:
+            logging.error("Token decode failed", exc_info=True)
             return None
 
     # Generate reset password token function
     @staticmethod
-    def generate_reset_password_token(expires: int = None):
-        if expires is not None:
-            # expires = datetime.now(tz=timezone.utc) + expires
-            expires = datetime.now(tz=timezone.utc) + expires
-        else:
-            expires = datetime.now(tz=timezone.utc) + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-            )
-        to_encode = {"exp": expires}
-        encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, settings.ALGORITHM)
-        return encoded_jwt
+    def generate_reset_password_token(expires: timedelta = None) -> str:
+        exp = datetime.now(tz=timezone.utc) + (expires or timedelta(minutes=15))
+        return jwt.encode({"exp": exp}, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
 
     @staticmethod
     def verify_access_token(request: Request, token: str):
-        ## decode the token to get the user id and then fetch the user role
-        ## lets check if the cookies for access token is set
         cookie_access_token = request.cookies.get("AccessToken")
-
         if cookie_access_token is None or cookie_access_token != token:
             raise HTTPException(status_code=401, detail="Access token is invalidated")
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate new access token credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
         try:
             payload = jwt.decode(
                 cookie_access_token,
                 settings.JWT_SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
             )
-            username: str = payload.get("sub")
-            if username is None:
-                raise credentials_exception
-            user = User(email=username)
-        except jwt.PyJWTError:
-            raise credentials_exception
-        return user
+            return User(email=payload.get("email"))
+        except jwt.JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
     # Generate refresh access token function
     @staticmethod
@@ -155,15 +121,3 @@ class Security:
             to_encode, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM
         )
         return encoded_jwt
-
-    # @staticmethod
-    # def decode_token(token: str):
-    #     try:
-    #         # print("token in decode_token: ", token)
-    #         payload = jwt.decode(
-    #             token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
-    #         )
-    #         # print("\npayload in decode_token: ", payload)
-    #         return payload
-    #     except JWTError:
-    #         return None
