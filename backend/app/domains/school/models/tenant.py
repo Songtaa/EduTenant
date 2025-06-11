@@ -13,8 +13,8 @@ class Tenant(APIBase, table=True):
     __tablename__ = "tenants"
     __table_args__ = {"schema": "public"}
     
-    name: str = Field(max_length=255, index=True)
-    domain: str = Field(max_length=255, unique=True)
+    schema_name: str = Field(max_length=255, index=True)
+    subdomain: str = Field(max_length=255, unique=True)
     is_active: bool = Field(default=True)
     billing_tier: str = Field(max_length=50, default="basic")
     
