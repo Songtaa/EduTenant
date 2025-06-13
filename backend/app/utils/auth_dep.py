@@ -4,7 +4,7 @@ from fastapi import Depends, Request, status
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
-from app.domains.auth.repository.login_repository import TokenBlocklistRepository
+from app.domains.auth.repository.token_blocklist import TokenBlocklistRepository
 # from app.domains.auth.repository.token_blocklist import TokenRepository
 from app.domains.auth.services.token import TokenService
 from sqlmodel.ext.asyncio.session import AsyncSession
