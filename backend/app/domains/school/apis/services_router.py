@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from app.db.session import get_session
-from app.domains.kace.services.services_service import (
+from app.domains.school.services.services_service import (
     Service,
     ServiceCreate,
     ServiceUpdate,

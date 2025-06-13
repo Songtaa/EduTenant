@@ -6,7 +6,7 @@ from typing import List, Optional
 
 
 class Permission(APIBase, table=True):
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    
     name: str = Field(index=True)
 
     # roles: List["Role"] = Relationship(back_populates="permissions", link_model=RolePermission)

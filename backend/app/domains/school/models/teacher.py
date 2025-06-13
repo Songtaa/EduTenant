@@ -1,3 +1,4 @@
+from app.domains.school.models.teacher_course import TeacherCourseLink
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
 from uuid import uuid4, UUID
@@ -12,5 +13,5 @@ class Teacher(APIBase, table=True):
     phone: Optional[str] = None
 
     courses: List["Course"] = Relationship(
-        back_populates="teachers", link_model="TeacherCourseLink"
+        back_populates="teachers", link_model=TeacherCourseLink
     )

@@ -16,8 +16,9 @@ from typing import List, Type
 class CRUDUser(BaseRepository[User, UserCreate, UserUpdate]):
     pass
 
-
-users_form_actions = CRUDUser(User)
+async def some_function(session: AsyncSession):
+    users_form_actions = CRUDUser(User, session)
+# users_form_actions = CRUDUser(User)
 
 
 class UserRepository:

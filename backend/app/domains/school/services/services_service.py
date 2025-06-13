@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from app.domains.kace.models.services import Service
-from app.domains.kace.repository.services_repository import ServiceRepository
-from app.domains.kace.schemas.services_schemas import (
+from app.domains.school.models.services import Service
+from app.domains.school.repository.services_repository import ServiceRepository
+from app.domains.school.schemas.services_schemas import (
     ServiceCreate,
     ServiceSchema,
     ServiceUpdate,

@@ -55,7 +55,7 @@ class Settings(BaseSettings):
 
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "fastedu_db")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "edutenant_db")
 
     # Dynamically choose the Postgres server based on Docker environment
     POSTGRES_SERVER: str = (

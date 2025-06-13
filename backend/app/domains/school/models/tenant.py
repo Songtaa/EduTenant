@@ -6,8 +6,8 @@ from app.db.base_class import APIBase
 from datetime import datetime
 from sqlmodel import Field, Relationship
 from typing import List
-from app.domains.school.models.school import School
-# from app.models.base import APIBase
+# from app.domains.school.models.school import School
+
 
 class Tenant(APIBase, table=True):
     __tablename__ = "tenants"
