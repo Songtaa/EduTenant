@@ -11,7 +11,7 @@ class Class(APIBase, table=True):
     
     name: str
     year: int
-    programme_id: UUID = Field(foreign_key="programme.id")
+    programme_id: UUID = Field(foreign_key="programmes.id")
 
     programme: Optional["Programme"] = Relationship(back_populates="classes")
     students: List["Student"] = Relationship(back_populates="class_")

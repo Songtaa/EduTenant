@@ -21,6 +21,6 @@ class School(APIBase, table=True):
     logo_url: Optional[str]
     established_year: Optional[int] = Field(default_factory=lambda: datetime.now().year)
 
-    # Relationships
-    # students: List["Student"] = Relationship(back_populates="school")
-    tenant: "Tenant" = Relationship(back_populates="schools")
+    
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
+    tenant: Optional["Tenant"] = Relationship(back_populates="schools")

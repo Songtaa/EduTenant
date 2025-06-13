@@ -104,14 +104,44 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
+    
 
-    # --- Computed Properties ---
-    @computed_field
-    @property
-    def server_host(self) -> str:
-        return f"http{'s' if self.ENVIRONMENT != 'local' else ''}://{self.DOMAIN}"
+    # ENVIRONMENT: str = os.getenv("ENVIRONMENT", "local")
+    DOCKER: bool = os.getenv("DOCKER", "false").lower() == "true"
 
-    @computed_field
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "edutenant_db")
+
+    # Dynamically choose the Postgres server based on Docker environment
+    POSTGRES_SERVER: str = (
+        os.getenv("POSTGRES_SERVER", "localhost") if not DOCKER else "postgres"
+    )
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", 5432))
+    PROJECT_NAME: str ="FastEdu Management App"
+    # SENTRY_DSN: HttpUrl | None = None
+    # POSTGRES_SERVER: str = "postgres"
+    # POSTGRES_PORT: int = 5432
+    # POSTGRES_USER: str = "postgres"
+    # POSTGRES_PASSWORD: str = "password"
+    # POSTGRES_DB: str = "fastedu_db"
+    # REDIS_HOST: str
+    # REDIS_PORT: int
+    # REDIS_URL: str
+    JTI_EXPIRY: int = 3600
+
+
+
+    REDIS_HOST:str="127.0.0.1"
+    REDIS_PORT:str="6379"
+    REDIS_PASSWORD:str=''
+    REDIS_USER:str=''
+    REDIS_NODE:str="0"
+    REDIS_MAX_RETRIES:int = 3
+    REDIS_RETRY_INTERVAL:int=10
+    
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
         """Main database URL (used as base for both master and shared)"""
