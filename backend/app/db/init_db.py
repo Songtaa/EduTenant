@@ -53,7 +53,7 @@ async def init_db() -> None:
 
             tenant_data = TenantCreate(
                 name=settings.DEFAULT_TENANT_NAME,
-                domain=settings.DEFAULT_TENANT_SCHEMA,
+                subdomain=settings.DEFAULT_TENANT_SCHEMA,
                 is_active=settings.INIT_DEFAULT_TENANT,
                 billing_tier=settings.DEFAULT_BILLING_TIER
             )
@@ -70,7 +70,7 @@ async def init_db() -> None:
                 tenant_service = TenantService(session)
 
 
-                existing_tenant = await tenant_service.repository.get_by_domain(tenant_data.domain)
+                existing_tenant = await tenant_service.repository.get_by_subdomain(tenant_data.subdomain)
                 if existing_tenant:
                     logger.info(f"Tenant '{tenant_data.domain}' already exists. Skipping creation.")
                 else:

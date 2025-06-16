@@ -6,7 +6,7 @@ from app.db.base_class import APIBase
 
 class TenantBase(APIBase):
     name: str
-    domain: str
+    subdomain: str
     is_active: bool
     billing_tier: str
 
