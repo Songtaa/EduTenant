@@ -1,4 +1,5 @@
 # app/models/school.py
+from datetime import datetime
 from uuid import UUID
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
@@ -14,8 +15,12 @@ class School(APIBase, table=True):
     name: str = Field(max_length=255)
     address: str = Field(max_length=500)
     phone: str = Field(max_length=50)
-    tenant_id: Optional[UUID] = Field(foreign_key="public.tenants.id", index=True)
+    tenant_id: Optional[UUID] = Field(index=True)
+    contact_email: Optional[str]
+    address: Optional[str]
+    logo_url: Optional[str]
+    established_year: Optional[int] = Field(default_factory=lambda: datetime.now().year)
 
-    # Relationships
-    students: List["Student"] = Relationship(back_populates="school")
-    tenant: "Tenant" = Relationship(back_populates="schools")
+    
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
+    tenant: Optional["Tenant"] = Relationship(back_populates="schools")

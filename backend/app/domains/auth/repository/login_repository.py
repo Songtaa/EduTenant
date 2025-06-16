@@ -6,14 +6,6 @@ from datetime import datetime
 from app.utils.security import Security # Assuming this is where `create_access_token` is defined
 from fastapi import HTTPException, status
 from app.utils.errors import InvalidToken
-from datetime import timedelta
-from app.utils.security import Security
-from app.domains.auth.repository.token_blocklist import TokenBlocklistRepository
-from app.domains.auth.schemas.auth import TokenResponse
-from app.config.settings import settings
-from app.domains.auth.repository.user_repository import UserRepository
-from sqlmodel.ext.asyncio.session import AsyncSession
-
 
 
 class CRUDLoggedUser(BaseRepository[User, UserCreate, UserUpdate]):
@@ -21,6 +13,7 @@ class CRUDLoggedUser(BaseRepository[User, UserCreate, UserUpdate]):
 
 
 # logged_in_users_actions = CRUDLoggedUser(User)
+
 
 
 class AuthRepository:
