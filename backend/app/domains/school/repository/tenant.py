@@ -19,8 +19,8 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
     def __init__(self, session: AsyncSession):
         super().__init__(Tenant, session)
     
-    async def get_by_domain(self, domain: str):
-        stmt = select(Tenant).where(Tenant.domain == domain)
+    async def get_by_subdomain(self, subdomain: str) -> Optional[Tenant]:
+        stmt = select(Tenant).where(Tenant.subdomain == subdomain)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
     

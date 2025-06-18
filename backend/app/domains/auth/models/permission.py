@@ -6,12 +6,11 @@ from typing import List, Optional
 
 
 class Permission(APIBase, table=True):
+    __tablename__ = "permissions"
+    __table_args__ = {'schema': 'public'}
     
     name: str = Field(index=True)
-
-    # roles: List["Role"] = Relationship(back_populates="permissions", link_model=RolePermission)
-
-    # permission_roles: List["RolePermission"] = Relationship(back_populates="permission")
+    description: Optional[str] = Field(default=None, max_length=500)
 
     roles: List["Role"] = Relationship(back_populates="permissions", link_model=RolePermission, sa_relationship_kwargs={"viewonly": True})
     role_permissions: List["RolePermission"] = Relationship(back_populates="permission")

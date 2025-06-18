@@ -5,8 +5,8 @@ from typing import Optional
 from app.db.base_class import APIBase
 
 class TenantBase(APIBase):
-    name: str
-    domain: str
+    schema_name: str
+    subdomain: str
     is_active: bool
     billing_tier: str
 
@@ -16,7 +16,7 @@ class TenantCreate(TenantBase):
 class TenantUpdate(APIBase):
    
     name: Optional[str] = None
-    domain: Optional[str] = None
+    subdomain: Optional[str] = None
     is_active: Optional[bool] = None
     billing_tier: Optional[str] = None
 

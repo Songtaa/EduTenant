@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 class TokenBlocklist(APIBase, table=True):
     __tablename__ = "token_blocklist"
-    # __table_args__ = {"schema": "public"}
+    __table_args__ = {"schema": "public"}
 
 
     
@@ -19,7 +19,7 @@ class TokenBlocklist(APIBase, table=True):
     expires_at: datetime = Field(nullable=False)
     # user_id: UUID = Field(ForeignKey('users.id'), nullable=False)
     user_id: UUID = Field(
-    sa_column=Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    sa_column=Column(PG_UUID(as_uuid=True), ForeignKey("public.users.id"), nullable=False)
     )
     expires_at: datetime
     tenant: str | None = Field(default=None, index=True)
