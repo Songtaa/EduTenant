@@ -16,5 +16,5 @@ class Student(APIBase, table=True):
     class_id: Optional[UUID] = Field(foreign_key="classes.id")
 
 
-    parent_id: Optional[UUID] = Field(foreign_key="parent.id")
+    parent_id: Optional[UUID] = Field(foreign_key="parents.id")
     class_: Optional["Class"] = Relationship(back_populates="students")

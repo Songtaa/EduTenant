@@ -10,7 +10,7 @@ from typing import List
 
 class User(APIBase, table=True):
     __tablename__ = "users"
-    # __table_args__ = {'schema': 'public'}
+    __table_args__ = {'schema': 'public'}
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     email: EmailStr = Field(sa_column=Column(String(255), nullable=False, unique=True))

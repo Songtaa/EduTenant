@@ -27,14 +27,14 @@ class TenantService:
     async def create_tenant(self, tenant_data: TenantCreate) -> TenantRead:
         """Create a new tenant with schema and tables"""
 
-        if await self.repository.get_by_domain(tenant_data.domain):
+        if await self.repository.get_by_subdomain(tenant_data.subdomain):
             raise HTTPException(status_code=400, detail="Domain already in use")
 
         try:
             # Use master session to create schema and tables
             async with get_master_session() as master_session:
-                await create_schema(tenant_data.domain)
-                await create_schema_tables(tenant_data.domain, master_session)
+                await create_schema(tenant_data.subdomain)
+                await create_schema_tables(tenant_data.subdomain, master_session)
 
                 # Register tenant in the master DB
                 tenant = await self.repository.create(tenant_data)
@@ -51,7 +51,7 @@ class TenantService:
         tenant_out = await self.create_tenant(tenant_data)
 
         # Use tenant-specific session to seed admin
-        async with get_tenant_session(tenant_data.domain) as tenant_session:
+        async with get_tenant_session(tenant_data.subdomain) as tenant_session:
             await seed_admin_user(tenant_session, admin_data)
 
         return tenant_out
