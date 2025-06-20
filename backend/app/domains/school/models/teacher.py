@@ -11,6 +11,8 @@ class Teacher(APIBase, table=True):
     full_name: str
     email: str = Field(index=True, unique=True)
     phone: Optional[str] = None
+    user_id: UUID = Field(foreign_key="public.users.id")
+    school_id: UUID = Field(foreign_key="schools.id")
 
     courses: List["Course"] = Relationship(
         back_populates="teachers", link_model=TeacherCourseLink

@@ -59,10 +59,10 @@ class Settings(BaseSettings):
 
     #  --- Default Tenant and admin ---
     INIT_DEFAULT_TENANT: bool = os.getenv("INIT_DEFAULT_TENANT", "false").lower() == "true"
-    DEFAULT_TENANT_SCHEMA: str = os.getenv("DEFAULT_TENANT_SCHEMA", "school_alpha")
+    DEFAULT_TENANT_SCHEMA: str = os.getenv("DEFAULT_TENANT_SCHEMA", "school_alphac")
     DEFAULT_TENANT_ADMIN_EMAIL: str = os.getenv("DEFAULT_TENANT_ADMIN_EMAIL", "admin@schoolalpha.com")
     DEFAULT_TENANT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_TENANT_ADMIN_PASSWORD", "securepass")
-    DEFAULT_TENANT_NAME: str = os.getenv("DEFAULT_TENANT_NAME","Default Tenant")
+    DEFAULT_TENANT_NAME: str = os.getenv("DEFAULT_TENANT_NAME","ACME_In")
     DEFAULT_TENANT_ADMIN_NAME: str = os.getenv("DEFAULT_TENANT_NAME"," Admin")
     DEFAULT_TENANT_ADMIN_ROLE: str = os.getenv("DEFAULT_TENANT_ADMIN_ROLE", "admin")
     DEFAULT_BILLING_TIER: str = os.getenv("DEFAULT_BILLING_TIER", "Basic")

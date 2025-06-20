@@ -6,6 +6,9 @@ from typing import List, Optional
 
 
 class Permission(APIBase, table=True):
+
+    __tablename__ = "permissions"
+    __table_args__ = {'schema': 'public'}
     
     name: str = Field(index=True)
 
