@@ -19,4 +19,4 @@ class TenantPermission(TenantPermissionBase, table=True):
     )
     direct_user_assignments: List["TenantUserPermission"] = Relationship(
         back_populates="permission"
-    )
+    ) 
