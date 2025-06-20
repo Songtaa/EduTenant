@@ -5,7 +5,8 @@ from app.domains.auth.models.user_role import UserRole
 from sqlmodel import Field, Relationship
 from uuid import uuid4, UUID
 from typing import List
-# from app.domains.auth.models.role import Role
+from app.domains.school.models.tenant_role import TenantUserRole
+from app.domains.school.models.tenant_role import TenantRole
 
 
 class User(APIBase, table=True):
@@ -24,5 +25,7 @@ class User(APIBase, table=True):
     roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole, sa_relationship_kwargs={"viewonly": True})
     user_roles: List["UserRole"] = Relationship(back_populates="user") 
     user_permissions: List["UserPermission"] = Relationship(back_populates='user')
+    tenant_roles: List["TenantRole"] = Relationship(back_populates="users", link_model=TenantUserRole, sa_relationship_kwargs={"viewonly": True})
+    tenant_user_roles: List["TenantUserRole"] = Relationship(back_populates="user")
     tokens: List["TokenBlocklist"] = Relationship(back_populates="user")
 

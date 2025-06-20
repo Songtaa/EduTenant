@@ -11,3 +11,6 @@ class Parent(APIBase, table=True):
     email: str = Field(index=True, unique=True)
     phone: Optional[str] = None
     occupation: Optional[str] = None
+
+    user_id: UUID = Field(foreign_key="public.users.id")
+    school_id: UUID = Field(foreign_key="schools.id")

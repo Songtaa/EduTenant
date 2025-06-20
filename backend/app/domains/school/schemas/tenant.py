@@ -15,7 +15,7 @@ class TenantCreate(TenantBase):
 
 class TenantUpdate(APIBase):
    
-    name: Optional[str] = None
+    shema_name: Optional[str] = None
     subdomain: Optional[str] = None
     is_active: Optional[bool] = None
     billing_tier: Optional[str] = None

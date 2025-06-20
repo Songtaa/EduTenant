@@ -3,33 +3,32 @@ from logging.config import fileConfig
 import os
 
 from alembic import context
-from app.config.settings import settings
-from sqlmodel import SQLModel
+import asyncio
+from logging.config import fileConfig
 from sqlalchemy import pool, MetaData
-from sqlalchemy.engine import Connection
+
+
+from alembic import context
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlalchemy import pool, text
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from app.config.settings import settings
+from app.db.base_class import APIBase
+
+from app.domains.auth.models import (
+    permission,
+    user_permissions,
+    user_role,
+    users,
+    refresh_token,
+    role,
+    role_permission,
+    token_blocklist,
+)
+
+from app.domains.school.models import tenant_permission
 
 
-from app.domains.auth.models.users import APIBase
-from app.domains.auth.models.permission import APIBase
-from app.domains.auth.models.role import APIBase
-from app.domains.auth.models.role_permission import APIBase
-from app.domains.auth.models.user_role import APIBase
-from app.domains.auth.models.user_permissions import APIBase
-from app.domains.school.models.tenant import APIBase
-from app.domains.school.models.school import APIBase
-from app.domains.school.models.student import APIBase
-from app.domains.school.models.services import APIBase
-from app.domains.auth.models.token_blocklist import APIBase
-from app.domains.school.models.classes import APIBase
-from app.domains.school.models.course import APIBase
-from app.domains.school.models.parent import APIBase
-from app.domains.school.models.programme import APIBase
-from app.domains.school.models.school import APIBase
-from app.domains.school.models.student import APIBase
-from app.domains.school.models.teacher import APIBase
-from app.domains.school.models.teacher_course import APIBase
 
 database_url = str(settings.SQLALCHEMY_DATABASE_URI)
 config = context.config
@@ -38,7 +37,21 @@ config.set_main_option("sqlalchemy.url", database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = APIBase.metadata
+
+#Filter metadata to only public schema tables
+public_metadata = MetaData()
+for table in APIBase.metadata.tables.values():
+    if getattr(table, "schema", None) == "public":
+        table.tometadata(public_metadata)
+
+target_metadata = public_metadata
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+# target_metadata = None
+# target_metadata = APIBase.metadata
 
 def get_schema():
     """Get schema from multiple possible sources"""
