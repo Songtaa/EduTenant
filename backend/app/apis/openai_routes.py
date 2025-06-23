@@ -20,9 +20,20 @@ def get_docs_router(app) -> APIRouter:
             title=f"{settings.PROJECT_NAME} - {context.title()} API",
             swagger_ui_parameters={"defaultModelsExpandDepth": -1}
         )
+    
+    
+    @router.get("/tenant-docs", include_in_schema=False)
+    async def tenant_swagger_ui(request: Request):
+        request.state.context = "tenant"  
+        return get_swagger_ui_html(
+            openapi_url="/openapi.json?context=tenant",
+            title=f"{settings.PROJECT_NAME} - Tenant API",
+            swagger_ui_parameters={"defaultModelsExpandDepth": -1}
+        )
 
     @router.get("/openapi.json", include_in_schema=False)
     async def custom_openapi(request: Request, context: str = None):
+        print(f"Current routes: {[route.path for route in request.app.routes]}")
         ctx = context or getattr(request.state, "context", None)
         if ctx not in {"tenant", "global"}:
             return JSONResponse(status_code=400, content={"detail": "Invalid context"})
