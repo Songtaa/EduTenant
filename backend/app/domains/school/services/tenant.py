@@ -88,14 +88,14 @@ class TenantService:
         await self.session.commit()
         return True
 
-    async def search_tenants(
+    async def list_tenants(
         self,
         search_term: Optional[str] = None,
         active_only: bool = True,
         skip: int = 0,
         limit: int = 100
     ) -> List[TenantRead]:
-        tenants = await self.repository.search_tenants(
+        tenants = await self.repository.list_all(
             search_term=search_term,
             active_only=active_only,
             skip=skip,

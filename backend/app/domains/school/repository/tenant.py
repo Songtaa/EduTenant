@@ -45,7 +45,7 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
         """
         try:
             # Create tenant
-            tenant = self.create(tenant_data)
+            tenant = await self.create(tenant_data)
             
             # Create default school (in same transaction for demo)
             school = School(**school_data, tenant_id=tenant.id)
@@ -62,33 +62,23 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
                 detail=f"Failed to create tenant: {str(e)}"
             )
     
-    def search_tenants(
+    async def list_all(
         self,
         search_term: Optional[str] = None,
         active_only: bool = True,
         skip: int = 0,
         limit: int = 100
     ) -> List[Tenant]:
-        """
-        Search tenants with filtering options
-        
-        Args:
-            search_term: Search in name or domain
-            active_only: Filter only active tenants
-            skip: Pagination offset
-            limit: Pagination limit
-        """
         query = select(Tenant)
-        
+
         if active_only:
-            query = query.where(Tenant.is_active is True)
-            
+            query = query.where(Tenant.is_active.is_(True))
+
         if search_term:
             query = query.where(
                 (Tenant.name.ilike(f"%{search_term}%")) |
                 (Tenant.domain.ilike(f"%{search_term}%"))
             )
-            
-        return self.session.exec(
-            query.offset(skip).limit(limit)
-        ).all()
+
+        result = await self.session.execute(query.offset(skip).limit(limit))
+        return result.scalars().all()

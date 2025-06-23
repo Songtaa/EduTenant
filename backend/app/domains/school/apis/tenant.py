@@ -5,6 +5,7 @@ from app.domains.school.services.tenant import (
     TenantService,
     TenantCreate,
     TenantUpdate,
+    TenantRead,
 )
 from app.utils.auth_dep import access_token_bearer
 from fastapi import APIRouter, Depends, HTTPException
@@ -34,12 +35,12 @@ async def update_tenant(
     return tenant
 
 
-@tenant_router.get("/", response_model=list[TenantCreate])
+@tenant_router.get("/", response_model=list[TenantRead])
 async def get_all_tenants(
     session: sessionDep, user_details=Depends(access_token_bearer)
 ):
     _tenant = TenantService(session)
-    return await _tenant.get_tenant()
+    return await _tenant.list_tenants()
 
 
 @tenant_router.delete("/{_id}", status_code=204)
