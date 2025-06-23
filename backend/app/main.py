@@ -1,6 +1,8 @@
 
 from contextlib import asynccontextmanager
 
+from requests import Request
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings 
@@ -63,8 +65,24 @@ register_all_errors(app)
 
 app.include_router(get_docs_router(app))
 
+
+
 # Global routes (tenant registration, auth)
 app.include_router(global_router, prefix=f"{settings.API_V1_STR}")
 
 # Tenant-specific routes (school logic)
-app.include_router(tenant_router, prefix=f"{settings.API_V1_STR}")
+# app.include_router(tenant_router, prefix=f"{settings.API_V1_STR}/tenants")
+
+@app.middleware("http")
+async def tenant_routes_middleware(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Only mount tenant router if we're in tenant context
+    if getattr(request.state, "context", None) == "tenant":
+        tenant_id = request.state.tenant_id
+        app.include_router(
+            tenant_router,
+            prefix=f"{settings.API_V1_STR}/tenants/{tenant_id}"
+        )
+    
+    return response

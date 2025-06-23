@@ -11,19 +11,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import UUID4
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-tenant_router = APIRouter(prefix="/tenants", tags=["Tenants"])
+tenant_management_router = APIRouter(prefix="/tenants", tags=["Tenants management"])
 
 sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 
 
-@tenant_router.post("/", response_model=TenantCreate)
+@tenant_management_router.post("/", response_model=TenantCreate)
 async def create_tenant(tenant_data: TenantCreate, session: sessionDep):
     _tenant = TenantService(session)
     tenant = await _tenant.create_tenant(tenant_data)
     return tenant
 
 
-@tenant_router.patch("/{tenant_id}", response_model=TenantUpdate)
+@tenant_management_router.patch("/{tenant_id}", response_model=TenantUpdate)
 async def update_tenant(
     tenant_id: str, tenant_data: TenantUpdate, session: sessionDep
 ):
@@ -34,7 +34,7 @@ async def update_tenant(
     return tenant
 
 
-@tenant_router.get("/", response_model=list[TenantCreate])
+@tenant_management_router.get("/", response_model=list[TenantCreate])
 async def get_all_tenants(
     session: sessionDep, user_details=Depends(access_token_bearer)
 ):
@@ -42,7 +42,7 @@ async def get_all_tenants(
     return await _tenant.get_tenant()
 
 
-@tenant_router.delete("/{_id}", status_code=204)
+@tenant_management_router.delete("/{_id}", status_code=204)
 async def delete_tenant(
     _id: UUID4,
     session: sessionDep

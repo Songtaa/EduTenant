@@ -1,3 +1,4 @@
+from app.config.settings import settings
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -8,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class TenantSubdomainMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, base_domain: str, global_prefix: str):
         super().__init__(app)
@@ -16,42 +18,37 @@ class TenantSubdomainMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         host = request.headers.get("host", "")
+        
+        # Extract subdomain (api.edutenant.localhost -> "api")
         subdomain = host.replace(f".{self.base_domain}", "").split(":")[0].strip().lower()
 
-        if not subdomain:
-            return JSONResponse(status_code=400, content={"detail": "Tenant subdomain not detected"})
-
+        # Global context (api.edutenant.localhost)
         if subdomain == self.global_prefix:
             request.state.context = "global"
             request.state.tenant_id = None
-            logger.debug("Global context detected.")
-
-            # Set global DB session
+            logger.debug("Global context detected")
+            
             async with get_master_session() as session:
                 request.state.session = session
-                response = await call_next(request)
-                return response
+                return await call_next(request)
 
-        if "." in subdomain:
+        # Tenant context (tenant1.edutenant.localhost)
+        if "." in subdomain:  # Invalid if contains multiple dots
             return JSONResponse(status_code=400, content={"detail": "Invalid subdomain format"})
 
-        # Validate tenant existence
+        # Verify tenant exists
         async with get_master_session() as session:
-            result = await session.execute(
+            tenant_exists = await session.scalar(
                 text("SELECT 1 FROM public.tenants WHERE subdomain = :subdomain"),
                 {"subdomain": subdomain}
             )
-            if not result.scalar():
+            if not tenant_exists:
                 return JSONResponse(status_code=404, content={"detail": f"Tenant '{subdomain}' not found"})
 
         request.state.tenant_id = subdomain
         request.state.context = "tenant"
         logger.debug(f"Tenant context detected: '{subdomain}'")
 
-        # Create a tenant DB session
         async with get_tenant_session(subdomain) as tenant_session:
             request.state.session = tenant_session
-            response = await call_next(request)
-            return response
-
-
+            return await call_next(request)
