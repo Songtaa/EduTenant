@@ -3,8 +3,12 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from app.db.base_class import APIBase
+from pydantic import UUID4, ConfigDict, EmailStr, Field
+from sqlmodel import SQLModel
 
-class TenantBase(APIBase):
+
+
+class TenantBase(SQLModel):
     schema_name: str
     subdomain: str
     is_active: bool
@@ -13,9 +17,9 @@ class TenantBase(APIBase):
 class TenantCreate(TenantBase):
     pass
 
-class TenantUpdate(APIBase):
+class TenantUpdate(TenantBase):
    
-    shema_name: Optional[str] = None
+    schema_name: Optional[str] = None
     subdomain: Optional[str] = None
     is_active: Optional[bool] = None
     billing_tier: Optional[str] = None
@@ -23,8 +27,7 @@ class TenantUpdate(APIBase):
 class TenantRead(TenantBase):
     id: UUID
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TenantSchema(TenantRead):

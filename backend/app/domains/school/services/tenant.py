@@ -1,50 +1,60 @@
 # app/services/tenant.py
 from typing import List, Optional
 from uuid import UUID
+from app.utils.tenant_bootstrapper import TenantBootstrapper
 from fastapi import Depends, HTTPException
 from app.domains.auth.services.user_service import UserService
 from app.utils.seeder import seed_admin_user
 from sqlmodel import Session
-from app.domains.school.schemas.tenant import TenantCreate, TenantUpdate, TenantRead
+from app.domains.school.schemas.tenant import TenantCreate, TenantUpdate, TenantRead, TenantSchema
 from app.domains.school.repository.tenant import TenantRepository
 from app.domains.school.models.tenant import Tenant
 from app.db.session import get_master_session
 from app.utils.tenant import create_schema, create_schema_tables
 from app.domains.auth.schemas.user_schema import UserCreate
 from app.db.session import get_tenant_session
+from app.utils.dependencies import get_master_engine
 
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy import text
 
 
 
+# class TenantService:
+#     def __init__(self, session: AsyncSession):
+#         self.session = session
+#         self.repository = TenantRepository(session)
 class TenantService:
     def __init__(self, session: AsyncSession):
         self.session = session
+        
         self.repository = TenantRepository(session)
 
-    async def create_tenant(self, tenant_data: TenantCreate) -> TenantRead:
-        """Create a new tenant with schema and tables"""
+    async def get_all(self) -> List[Optional[TenantSchema]]:
+        return await self.repository.get_all()
 
+    async def create_tenant(self, tenant_data: TenantCreate) -> TenantRead:
+        # Step 0: Check for domain/subdomain conflicts
         if await self.repository.get_by_subdomain(tenant_data.subdomain):
-            raise HTTPException(status_code=400, detail="subdomain already in use")
+            raise HTTPException(status_code=400, detail="Domain already in use")
 
         try:
-            # Use master session to create schema and tables
-            async with get_master_session() as master_session:
-                await create_schema(tenant_data.subdomain)
-                await create_schema_tables(tenant_data.subdomain, master_session)
+            schema_name = tenant_data.schema_name  # must now be passed explicitly
 
-                # Register tenant in the master DB
-                tenant = await self.repository.create(tenant_data)
-                await master_session.commit()
+            # Step 1: Bootstrap schema if needed
+            bootstrapper = TenantBootstrapper(get_master_engine())
+            await bootstrapper.bootstrap_if_needed(schema_name)
+
+            # Step 2: Create tenant
+            tenant = await self.repository.create(tenant_data)
+            await self.session.commit()
 
             return TenantRead.from_orm(tenant)
 
         except Exception as e:
-            await master_session.rollback()
+            await self.session.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to create tenant: {str(e)}")
+
 
     async def create_tenant_with_admin(self, tenant_data: TenantCreate, admin_data: UserCreate):
         """Create a tenant and seed a default admin user"""
@@ -56,14 +66,14 @@ class TenantService:
 
         return tenant_out
 
-    async def get_tenant(self, tenant_id: UUID) -> TenantRead:
+    async def get_tenant(self, tenant_id: UUID) -> TenantSchema:
         """Retrieve a tenant by ID"""
         tenant = await self.repository.get(tenant_id)
         if not tenant:
             raise HTTPException(404, "Tenant not found")
         return TenantRead.from_orm(tenant)
 
-    async def update_tenant(self, tenant_id: UUID, update_data: TenantUpdate) -> TenantRead:
+    async def update_tenant(self, tenant_id: UUID, update_data: TenantUpdate) -> TenantSchema:
         """Update tenant details"""
         tenant = await self.repository.get(tenant_id)
         if not tenant:
@@ -73,7 +83,8 @@ class TenantService:
             if await self.repository.get_by_subdomain(update_data.subdomain):
                 raise HTTPException(400, "New subdomain already in use")
 
-        updated_tenant = await self.repository.update(tenant, update_data)
+        updated_tenant = await self.repository.update(db_obj=tenant, obj_in=update_data)
+
         await self.session.commit()
 
         return TenantRead.from_orm(updated_tenant)
@@ -84,8 +95,7 @@ class TenantService:
         if not tenant:
             raise HTTPException(404, "Tenant not found")
 
-        await self.repository.update(tenant, {"is_active": False})
-        await self.session.commit()
+        await self.repository.update(db_obj=tenant, obj_in={"is_active": False})
         return True
 
     async def list_tenants(

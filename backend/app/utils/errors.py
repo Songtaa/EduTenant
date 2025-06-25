@@ -1,78 +1,82 @@
 from typing import Any, Callable
 
-from fastapi import FastAPI, status
+
+from fastapi import FastAPI, status, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 
-class KACEMobileException(Exception):
+class EdutenantException(Exception):
     """This is the base class for all bookly errors"""
 
     pass
 
 
-class InvalidToken(KACEMobileException):
+class InvalidToken(EdutenantException):
     """User has provided an invalid or expired token"""
 
     pass
 
+class TenantCreationException(HTTPException):
+    def __init__(self, detail: str):
+        super().__init__(status_code=500, detail=detail)
 
-class RevokedToken(KACEMobileException):
+class RevokedToken(EdutenantException):
     """User has provided a token that has been revoked"""
 
     pass
 
 
-class AccessTokenRequired(KACEMobileException):
+class AccessTokenRequired(EdutenantException):
     """User has provided a refresh token when an access token is needed"""
 
     pass
 
 
-class RefreshTokenRequired(KACEMobileException):
+class RefreshTokenRequired(EdutenantException):
     """User has provided an access token when a refresh token is needed"""
 
     pass
 
 
-class UserAlreadyExists(KACEMobileException):
+class UserAlreadyExists(EdutenantException):
     """User has provided an email for a user who exists during sign up."""
 
     pass
 
 
-class InvalidCredentials(KACEMobileException):
+class InvalidCredentials(EdutenantException):
     """User has provided wrong email or password during log in."""
 
     pass
 
 
-class InsufficientPermission(KACEMobileException):
+class InsufficientPermission(EdutenantException):
     """User does not have the neccessary permissions to perform an action."""
 
     pass
 
 
-class BookNotFound(KACEMobileException):
+class BookNotFound(EdutenantException):
     """Book Not found"""
 
     pass
 
 
-class TagNotFound(KACEMobileException):
+class TagNotFound(EdutenantException):
     """Tag Not found"""
 
     pass
 
 
-class TagAlreadyExists(KACEMobileException):
+class TagAlreadyExists(EdutenantException):
     """Tag already exists"""
 
     pass
 
 
-class UserNotFound(KACEMobileException):
+class UserNotFound(EdutenantException):
     """User Not found"""
 
     pass
@@ -87,7 +91,7 @@ class AccountNotVerified(Exception):
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:
-    async def exception_handler(request: Request, exc: KACEMobileException):
+    async def exception_handler(request: Request, exc: EdutenantException):
         return JSONResponse(content=initial_detail, status_code=status_code)
 
     return exception_handler

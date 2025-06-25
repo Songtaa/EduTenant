@@ -21,7 +21,7 @@ import logging
 from app.domains.school.schemas.tenant import TenantCreate
 from app.domains.school.services.tenant import TenantService
 from app.utils.seeder import seed_admin_user
-from app.db.schema_utils import SchemaFactory
+from app.utils.schema_utils import SchemaFactory
 from sqlalchemy import pool, MetaData
 
 
