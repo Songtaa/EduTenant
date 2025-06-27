@@ -26,6 +26,12 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
     
+    async def get_by_schema_name(self, schema_name: str) -> Optional[Tenant]:
+        stmt = select(Tenant).where(Tenant.schema_name == schema_name)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    
     async def get_all(self) -> List[Optional[TenantSchema]]:
         statement = select(Tenant)
         result = await self.session.execute(statement)

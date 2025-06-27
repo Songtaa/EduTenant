@@ -95,13 +95,7 @@ async def init_default_tenant() -> None:
         if existing_tenant:
             logger.info(f"Tenant '{tenant_data.subdomain}' already exists. Skipping creation.")
         else:
-            async with master_async_engine.begin() as conn:
-                await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {tenant_data.subdomain}"))
-                factory = SchemaFactory(tenant_data.subdomain)
-                metadata, _ = factory.clone()
-                await conn.run_sync(metadata.create_all)
-
             await tenant_service.create_tenant_with_admin(tenant_data, tenant_admin)
-            logger.info(f"Default tenant '{settings.DEFAULT_TENANT_SCHEMA}' initialized.")
 
+            logger.info(f"Default tenant '{settings.DEFAULT_TENANT_SCHEMA}' initialized.")
 
