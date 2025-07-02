@@ -4,7 +4,7 @@ from uuid import UUID
 from app.utils.tenant_bootstrapper import TenantBootstrapper
 from fastapi import Depends, HTTPException
 from app.domains.auth.services.user_service import UserService
-from app.utils.seeder import seed_admin_user
+from app.utils.seeder import seed_global_admin_user, seed_tenant_admin_user
 from sqlmodel import Session
 from app.domains.school.schemas.tenant import TenantCreate, TenantUpdate, TenantRead, TenantSchema
 from app.domains.school.repository.tenant import TenantRepository
@@ -14,6 +14,7 @@ from app.utils.tenant import create_schema, create_schema_tables
 from app.domains.auth.schemas.user_schema import UserCreate
 from app.db.session import get_tenant_session
 from app.utils.dependencies import get_master_engine
+from app.domains.auth.models.tenant_user import TenantUser
 
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy import text
@@ -62,7 +63,7 @@ class TenantService:
 
         # Use tenant-specific session to seed admin
         async with get_tenant_session(tenant_data.subdomain) as tenant_session:
-            await seed_admin_user(tenant_session, admin_data)
+            await seed_tenant_admin_user(session=tenant_session, user_data=admin_data, user_model=TenantUser)
 
         return tenant_out
 

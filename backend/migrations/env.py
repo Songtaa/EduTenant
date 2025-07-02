@@ -1,81 +1,67 @@
 import asyncio
 from logging.config import fileConfig
 import os
+from typing import Optional
 
 from alembic import context
-import asyncio
-from logging.config import fileConfig
-from sqlalchemy import pool, MetaData
-
-
-from alembic import context
+from sqlalchemy import pool, MetaData, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlalchemy import pool
 from sqlalchemy.engine import Connection
+
 from app.config.settings import settings
 from app.db.base_class import APIBase
 
-from app.domains.auth.models import (
-    permission,
-    user_permissions,
-    user_role,
-    users,
-    refresh_token,
-    role,
-    role_permission,
-    token_blocklist,
-)
+# Import all models to ensure they're registered with SQLAlchemy
+from app.domains.auth.models.users import User
+from app.domains.auth.models.tenant_user import TenantUser
+from app.domains.auth.models.role import Role
+from app.domains.auth.models.permission import Permission
+from app.domains.auth.models.user_role import UserRole
+from app.domains.auth.models.user_permissions import UserPermission
+from app.domains.auth.models.role_permission import RolePermission
+from app.domains.auth.models.refresh_token import RefreshToken
+from app.domains.auth.models.token_blocklist import TokenBlocklist
+from app.domains.school.models.tenant_permission import TenantPermission
 
-from app.domains.school.models import tenant_permission
-
-
-
-database_url = str(settings.SQLALCHEMY_DATABASE_URI)
+# Alembic configuration
 config = context.config
+database_url = str(settings.SQLALCHEMY_DATABASE_URI)
 config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-
-#Filter metadata to only public schema tables
-public_metadata = MetaData()
+# Filter metadata to only public schema tables
+public_metadata = MetaData(schema="public")
 for table in APIBase.metadata.tables.values():
-    if getattr(table, "schema", None) == "public":
+    # Check both table.schema and __table_args__['schema']
+    table_schema = getattr(table, "schema", None)
+    table_args = getattr(table, "kwargs", {}) or {}
+    if table_schema == "public" or table_args.get("schema") == "public":
         table.tometadata(public_metadata)
 
 target_metadata = public_metadata
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-# target_metadata = None
-# target_metadata = APIBase.metadata
-
-def get_schema():
-    """Get schema from multiple possible sources"""
+def get_schema() -> Optional[str]:
+    """Get schema from multiple possible sources, defaulting to public"""
     if context.get_x_argument(as_dictionary=True).get('schema'):
         return context.get_x_argument(as_dictionary=True).get('schema')
     if os.getenv('SCHEMA'):
         return os.getenv('SCHEMA')
     if hasattr(config, 'cmd_opts') and getattr(config.cmd_opts, 'x', None):
         return config.cmd_opts.x.split('=')[1] if '=' in config.cmd_opts.x else config.cmd_opts.x
-    return None
+    return "public"  
 
-def include_object(object, name, type_, reflected, compare_to):
+def include_object(object, name, type_, reflected, compare_to) -> bool:
     """Filter which tables/schemas get included in autogenerate"""
     if type_ == "table":
-        schema = get_schema()
-        model_schema = getattr(object, 'schema', None)
-        return (schema == model_schema) or (model_schema is None and schema is None)
+       
+        return getattr(object, "schema", None) == "public"
     return True
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
-    schema = get_schema()
-    
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -83,7 +69,9 @@ def run_migrations_offline() -> None:
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
         include_object=include_object,
-        version_table_schema=schema
+        version_table_schema="public",  
+        compare_type=True,
+        compare_server_default=True
     )
 
     with context.begin_transaction():
@@ -97,20 +85,20 @@ async def run_async_migrations() -> None:
         poolclass=pool.NullPool,
     )
 
-    schema = get_schema()
-    
-    async with connectable.connect() as connection:
-        if schema:
-            await connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
-            await connection.execute(text(f"SET search_path TO {schema}"))
+    print("Engine created, attempting connection...")  # Add this line
 
-        def run_migrations(conn):
+    async with connectable.connect() as connection:
+        # Ensure public schema exists and is set as search path
+        await connection.execute(text("CREATE SCHEMA IF NOT EXISTS public"))
+        await connection.execute(text("SET search_path TO public"))
+
+        def run_migrations(conn: Connection) -> None:
             context.configure(
                 connection=conn,
                 target_metadata=target_metadata,
                 include_schemas=True,
                 include_object=include_object,
-                version_table_schema=schema,
+                version_table_schema="public",  
                 compare_type=True,
                 compare_server_default=True
             )
@@ -118,7 +106,7 @@ async def run_async_migrations() -> None:
                 context.run_migrations()
 
         await connection.run_sync(run_migrations)
-
+    
     await connectable.dispose()
 
 def run_migrations_online() -> None:

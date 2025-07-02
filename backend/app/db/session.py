@@ -65,7 +65,9 @@ def get_tenant_engine(tenant_id: str) -> AsyncEngine:
         def set_search_path(dbapi_connection, connection_record):
             try:
                 cursor = dbapi_connection.cursor()
-                cursor.execute("SET search_path TO %s, public", (tenant_id,))
+                # cursor.execute("SET search_path TO %s, public", (tenant_id,))
+                search_path = f'"{tenant_id}", public'
+                cursor.execute(f"SET search_path TO {search_path}")
             finally:
                 cursor.close()
 

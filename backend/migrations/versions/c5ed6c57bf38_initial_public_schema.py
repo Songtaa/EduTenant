@@ -1,8 +1,8 @@
 """initial_public_schema
 
-Revision ID: 12fa4d624308
+Revision ID: c5ed6c57bf38
 Revises: 
-Create Date: 2025-06-20 16:20:35.096518
+Create Date: 2025-06-27 18:34:31.283844
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = '12fa4d624308'
+revision: str = 'c5ed6c57bf38'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,21 +26,22 @@ def upgrade() -> None:
     sa.Column('created_date', sa.DateTime(), nullable=False),
     sa.Column('updated_date', sa.DateTime(), nullable=False),
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(length=500), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     schema='public'
     )
     op.create_index(op.f('ix_public_permissions_id'), 'permissions', ['id'], unique=False, schema='public')
     op.create_index(op.f('ix_public_permissions_name'), 'permissions', ['name'], unique=False, schema='public')
     op.create_table('roles',
-    sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_date', sa.DateTime(), nullable=False),
     sa.Column('updated_date', sa.DateTime(), nullable=False),
-    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(length=50), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(length=500), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     schema='public'
     )
-    op.create_index(op.f('ix_public_roles_id'), 'roles', ['id'], unique=False, schema='public')
-    op.create_index(op.f('ix_public_roles_name'), 'roles', ['name'], unique=False, schema='public')
+    op.create_index(op.f('ix_public_roles_name'), 'roles', ['name'], unique=True, schema='public')
     op.create_table('tenant_permissions',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_date', sa.DateTime(), nullable=False),
@@ -92,27 +93,53 @@ def upgrade() -> None:
     schema='public'
     )
     op.create_index(op.f('ix_public_refresh_tokens_id'), 'refresh_tokens', ['id'], unique=False, schema='public')
+    op.create_table('role_permissions',
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_date', sa.DateTime(), nullable=False),
+    sa.Column('updated_date', sa.DateTime(), nullable=False),
+    sa.Column('role_id', sa.Uuid(), nullable=False),
+    sa.Column('permission_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['permission_id'], ['public.permissions.id'], ),
+    sa.ForeignKeyConstraint(['role_id'], ['public.roles.id'], ),
+    sa.PrimaryKeyConstraint('id', 'role_id', 'permission_id'),
+    schema='public'
+    )
+    op.create_index(op.f('ix_public_role_permissions_id'), 'role_permissions', ['id'], unique=False, schema='public')
     op.create_table('token_blocklist',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_date', sa.DateTime(), nullable=False),
     sa.Column('updated_date', sa.DateTime(), nullable=False),
     sa.Column('jti', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('expires_at', sa.DateTime(), nullable=False),
-    sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.Column('global_user_id', sa.UUID(), nullable=True),
+    sa.Column('tenant_user_id', sa.UUID(), nullable=True),
     sa.Column('tenant', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['public.users.id'], ),
+    sa.ForeignKeyConstraint(['global_user_id'], ['public.users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     schema='public'
     )
     op.create_index(op.f('ix_public_token_blocklist_id'), 'token_blocklist', ['id'], unique=False, schema='public')
     op.create_index(op.f('ix_public_token_blocklist_jti'), 'token_blocklist', ['jti'], unique=False, schema='public')
     op.create_index(op.f('ix_public_token_blocklist_tenant'), 'token_blocklist', ['tenant'], unique=False, schema='public')
+    op.create_table('user_permissions',
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_date', sa.DateTime(), nullable=False),
+    sa.Column('updated_date', sa.DateTime(), nullable=False),
+    sa.Column('user_id', sa.Uuid(), nullable=False),
+    sa.Column('permission_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['permission_id'], ['public.permissions.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['public.users.id'], ),
+    sa.PrimaryKeyConstraint('id', 'user_id', 'permission_id'),
+    schema='public'
+    )
+    op.create_index(op.f('ix_public_user_permissions_id'), 'user_permissions', ['id'], unique=False, schema='public')
     op.create_table('user_roles',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_date', sa.DateTime(), nullable=False),
     sa.Column('updated_date', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.Uuid(), nullable=False),
     sa.Column('role_id', sa.Uuid(), nullable=False),
+    sa.Column('tenant_id', sa.Uuid(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['public.roles.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['public.users.id'], ),
     sa.PrimaryKeyConstraint('id', 'user_id', 'role_id'),
@@ -126,10 +153,14 @@ def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_index(op.f('ix_public_user_roles_id'), table_name='user_roles', schema='public')
     op.drop_table('user_roles', schema='public')
+    op.drop_index(op.f('ix_public_user_permissions_id'), table_name='user_permissions', schema='public')
+    op.drop_table('user_permissions', schema='public')
     op.drop_index(op.f('ix_public_token_blocklist_tenant'), table_name='token_blocklist', schema='public')
     op.drop_index(op.f('ix_public_token_blocklist_jti'), table_name='token_blocklist', schema='public')
     op.drop_index(op.f('ix_public_token_blocklist_id'), table_name='token_blocklist', schema='public')
     op.drop_table('token_blocklist', schema='public')
+    op.drop_index(op.f('ix_public_role_permissions_id'), table_name='role_permissions', schema='public')
+    op.drop_table('role_permissions', schema='public')
     op.drop_index(op.f('ix_public_refresh_tokens_id'), table_name='refresh_tokens', schema='public')
     op.drop_table('refresh_tokens', schema='public')
     op.drop_table('users', schema='public')
@@ -140,7 +171,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_public_tenant_permissions_id'), table_name='tenant_permissions', schema='public')
     op.drop_table('tenant_permissions', schema='public')
     op.drop_index(op.f('ix_public_roles_name'), table_name='roles', schema='public')
-    op.drop_index(op.f('ix_public_roles_id'), table_name='roles', schema='public')
     op.drop_table('roles', schema='public')
     op.drop_index(op.f('ix_public_permissions_name'), table_name='permissions', schema='public')
     op.drop_index(op.f('ix_public_permissions_id'), table_name='permissions', schema='public')

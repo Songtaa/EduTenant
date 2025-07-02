@@ -13,6 +13,7 @@ class TokenBlocklistRepository:
 
     async def is_token_blocked(self, jti: str, tenant: str | None = None) -> bool:
         stmt = select(TokenBlocklist).where(TokenBlocklist.jti == jti)
+
         if tenant:
             stmt = stmt.where(TokenBlocklist.tenant == tenant)
         else:
@@ -21,18 +22,30 @@ class TokenBlocklistRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
-    async def add_token_to_blocklist(self, jti: str, expires_at: datetime, user_id: str, tenant: str | None = None):
+    async def add_token_to_blocklist(
+        self,
+        jti: str,
+        expires_at: datetime,
+        user_id: str,
+        tenant: str | None = None,
+        is_tenant_user: bool = False
+    ):
         token_entry = TokenBlocklist(
             jti=jti,
             expires_at=expires_at,
-            user_id=user_id,
             tenant=tenant
         )
+
+        if is_tenant_user:
+            token_entry.tenant_user_id = user_id
+        else:
+            token_entry.global_user_id = user_id
+
         self.session.add(token_entry)
         await self.session.commit()
 
     async def cleanup_expired_tokens(self) -> int:
-        stmt = delete(TokenBlocklist).where(TokenBlocklist.expires_at < datetime.utcnow())
+        stmt = delete(TokenBlocklist).where(TokenBlocklist.expires_at < datetime.now())
         result = await self.session.execute(stmt)
         await self.session.commit()
         return result.rowcount
