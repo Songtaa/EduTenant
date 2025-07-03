@@ -2,7 +2,7 @@
 from fastapi.openapi.utils import get_openapi
 from typing import Any, Dict
 from app.config.settings import settings 
-
+import re
 
 openapi_schema_cache: Dict[str, Any] = {}
 
@@ -25,7 +25,7 @@ def filter_openapi_schema(schema: dict, context: str) -> dict:
         ]
     }
     
-    import re  # Add at top of file
+    
     filtered_paths = {}
     
     for path, methods in schema.get("paths", {}).items():
