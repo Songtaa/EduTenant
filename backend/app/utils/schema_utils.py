@@ -42,7 +42,7 @@ class SchemaFactory:
                 target_name = fk.column.table.name
                 if target_name in self.table_map:
                     fk.column.table = self.table_map[target_name]
-                elif target_name == "users":
+                elif target_name == "tenant_users":
                     fk.column.table.schema = "public"
                 elif target_name == "tenants":
                     fk.column.table.schema = "public"

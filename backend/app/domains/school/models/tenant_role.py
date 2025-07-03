@@ -19,12 +19,12 @@ class TenantRole(TenantRoleBase, table=True):
         back_populates="roles",
         link_model=TenantRolePermission
     )
-    users: List["User"] = Relationship(
+    users: List["TenantUser"] = Relationship(
         back_populates="tenant_roles",
         link_model=TenantUserRole
     )
 
-    tenant_user_roles: List["TenantUserRole"] = Relationship(back_populates="role")
+    tenant_roles: List["TenantUserRole"] = Relationship(back_populates="role")
 
     
     

@@ -7,21 +7,23 @@ from uuid import uuid4, UUID
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 
-
-
 class TokenBlocklist(APIBase, table=True):
     __tablename__ = "token_blocklist"
     __table_args__ = {"schema": "public"}
 
-
-    
     jti: str = Field(index=True, nullable=False)
     expires_at: datetime = Field(nullable=False)
-    # user_id: UUID = Field(ForeignKey('users.id'), nullable=False)
-    user_id: UUID = Field(
-    sa_column=Column(PG_UUID(as_uuid=True), ForeignKey("public.users.id"), nullable=False)
+    
+    global_user_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(PG_UUID(as_uuid=True), ForeignKey("public.users.id"), nullable=True)
     )
-    expires_at: datetime
-    tenant: str | None = Field(default=None, index=True)
-        
-    user: "User" = Relationship(back_populates="tokens")
+
+    tenant_user_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(PG_UUID(as_uuid=True), nullable=True)  
+    )
+
+    tenant: str | None = Field(default=None, index=True)  
+
+    global_user: "User" = Relationship(back_populates="tokens", sa_relationship_kwargs={"viewonly": True})

@@ -10,7 +10,7 @@ class TenantUserRole(APIBase, table=True):
     
     
     user_id: UUID = Field(
-        foreign_key="public.users.id",
+        foreign_key="tenant_users.id",
         primary_key=True
     )
     role_id: UUID = Field(
@@ -18,10 +18,5 @@ class TenantUserRole(APIBase, table=True):
         primary_key=True
     )
 
-    user: Optional["User"] = Relationship(back_populates="tenant_user_roles")
-    role: Optional["TenantRole"] = Relationship(back_populates="tenant_user_roles")
-    # assigned_by: UUID | None = Field(
-    #     foreign_key="public.users.id",
-    #     default=None
-    # )
-    
+    user: Optional["TenantUser"] = Relationship(back_populates="tenant_user_roles")
+    role: Optional["TenantRole"] = Relationship(back_populates="tenant_roles")
