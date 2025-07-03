@@ -9,6 +9,7 @@ class SchoolBase(APIBase):
     address: str
     phone: str
 
+
 class SchoolCreate(SchoolBase):
     pass
 

@@ -10,6 +10,8 @@ from app.utils.auth_dep import access_token_bearer
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import UUID4
 from sqlmodel.ext.asyncio.session import AsyncSession
+from pydantic import UUID4
+from app.utils.dependencies
 
 school_router = APIRouter(prefix="/schools", tags=["Schools"])
 
@@ -19,13 +21,13 @@ sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
 @school_router.post("/", response_model=SchoolCreate)
 async def create_school(school_data: SchoolCreate, session: sessionDep):
     _school = SchoolService(session)
-    school = await _school.create(school_data)
+    school = await _school.create_school(school_data)
     return school
 
 
 @school_router.patch("/{school_id}", response_model=SchoolUpdate)
 async def update_school(
-    school_id: str, school_data: SchoolUpdate, session: sessionDep
+    school_id: UUID4, school_data: SchoolUpdate, session: sessionDep
 ):
     _school = SchoolService(session)
     school = await _school.update(school_id, school_data)
