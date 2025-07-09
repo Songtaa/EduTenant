@@ -15,7 +15,6 @@ class School(APIBase, table=True):
     name: str = Field(max_length=255)
     address: str = Field(max_length=500)
     phone: str = Field(max_length=50)
-    tenant_id: Optional[UUID] = Field(index=True)
     contact_email: Optional[str]
     address: Optional[str]
     logo_url: Optional[str]

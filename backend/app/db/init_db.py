@@ -101,10 +101,11 @@ async def init_default_tenant() -> None:
     # Use master session to check if tenant already exists
     async with get_master_session() as session:
         tenant_service = TenantService(session)
-        existing_tenant = await tenant_service.repository.get_by_subdomain(tenant_data.subdomain)
+        existing_tenant_subdomain = await tenant_service.repository.get_by_subdomain(tenant_data.subdomain)
+        existing_tenant_schema_name = await tenant_service.repository.get_by_schema_name(tenant_data.schema_name)
 
-        if existing_tenant:
-            logger.info(f"Tenant '{tenant_data.subdomain}' already exists. Skipping creation.")
+        if existing_tenant_subdomain or existing_tenant_schema_name:
+            logger.info(f"Tenant '{tenant_data.subdomain}' or '{tenant_data.schema_name}' already exists. Skipping creation.")
             return
 
    

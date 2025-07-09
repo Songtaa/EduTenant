@@ -1,3 +1,5 @@
+from http.client import HTTPException
+from app.domains.school.repository.tenant import TenantRepository
 from fastapi import Request
 from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
@@ -51,8 +53,34 @@ async def get_master_session() -> AsyncGenerator[AsyncSession, None]:
 
 # Tenant Engine and Session Management
 
+# def get_tenant_engine(tenant_id: str) -> AsyncEngine:
+#     """Get or create tenant-specific engine with search_path set."""
+#     if tenant_id not in tenant_engines:
+#         engine = create_async_engine(
+#             str(settings.SHARED_DB_URL),
+#             echo=settings.DEBUG,
+#             pool_pre_ping=True,
+#             poolclass=NullPool
+#         )
+
+#         @event.listens_for(engine.sync_engine, "connect")
+#         def set_search_path(dbapi_connection, connection_record):
+#             try:
+#                 cursor = dbapi_connection.cursor()
+#                 # cursor.execute("SET search_path TO %s, public", (tenant_id,))
+#                 search_path = f'"{tenant_id}", public'
+#                 cursor.execute(f"SET search_path TO {search_path}")
+#             finally:
+#                 cursor.close()
+
+#         tenant_engines[tenant_id] = engine
+
+#         if settings.DEBUG:
+#             logger.info(f"Created tenant engine for schema: {tenant_id}")
+
+#     return tenant_engines[tenant_id]
+
 def get_tenant_engine(tenant_id: str) -> AsyncEngine:
-    """Get or create tenant-specific engine with search_path set."""
     if tenant_id not in tenant_engines:
         engine = create_async_engine(
             str(settings.SHARED_DB_URL),
@@ -63,11 +91,10 @@ def get_tenant_engine(tenant_id: str) -> AsyncEngine:
 
         @event.listens_for(engine.sync_engine, "connect")
         def set_search_path(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
             try:
-                cursor = dbapi_connection.cursor()
-                # cursor.execute("SET search_path TO %s, public", (tenant_id,))
-                search_path = f'"{tenant_id}", public'
-                cursor.execute(f"SET search_path TO {search_path}")
+                # Proper parametrized version — safe & respects case
+                cursor.execute(f'SET search_path TO "{tenant_id}", public')
             finally:
                 cursor.close()
 
@@ -77,6 +104,7 @@ def get_tenant_engine(tenant_id: str) -> AsyncEngine:
             logger.info(f"Created tenant engine for schema: {tenant_id}")
 
     return tenant_engines[tenant_id]
+
 
 
 @asynccontextmanager
@@ -104,17 +132,40 @@ async def get_tenant_session(tenant_id: str) -> AsyncGenerator[AsyncSession, Non
 
 # Dynamic Session Dependency for Global + Tenant
 
+# @asynccontextmanager
+# async def db_session_dependency(request: Request) -> AsyncGenerator[AsyncSession, None]:
+#     """Yield appropriate session based on X-Tenant-ID or subdomain."""
+#     tenant_id = request.headers.get("X-Tenant-ID") or request.url.hostname.split(".")[0]
+
+#     if tenant_id and tenant_id != "api":
+#         async with get_tenant_session(tenant_id) as session:
+#             yield session
+#     else:
+#         async with get_master_session() as session:
+#             yield session
+
 @asynccontextmanager
 async def db_session_dependency(request: Request) -> AsyncGenerator[AsyncSession, None]:
-    """Yield appropriate session based on X-Tenant-ID or subdomain."""
-    tenant_id = request.headers.get("X-Tenant-ID") or request.url.hostname.split(".")[0]
+    subdomain = request.headers.get("X-Tenant-ID") or request.url.hostname.split(".")[0]
 
-    if tenant_id and tenant_id != "api":
-        async with get_tenant_session(tenant_id) as session:
-            yield session
+    if subdomain and subdomain != "api":
+        # Step 1: Get schema_name from master DB using subdomain
+        async with get_master_session() as master_session:
+            tenant_repo = TenantRepository(master_session)
+            tenant = await tenant_repo.get_by_subdomain(subdomain)
+
+            if not tenant:
+                raise HTTPException(status_code=404, detail="Tenant not found")
+
+            schema_name = tenant.schema_name
+
+        # Step 2: Use schema_name to get session
+        async with get_tenant_session(schema_name) as tenant_session:
+            yield tenant_session
     else:
         async with get_master_session() as session:
             yield session
+
 
 
 

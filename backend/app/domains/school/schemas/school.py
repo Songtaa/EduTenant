@@ -8,6 +8,11 @@ class SchoolBase(APIBase):
     name: str
     address: str
     phone: str
+    contact_email: Optional[str] = None
+    logo_url: Optional[str] = None
+    established_year: Optional[int] = None
+
+    tenant_id: Optional[UUID] = None
 
 
 class SchoolCreate(SchoolBase):
@@ -18,8 +23,11 @@ class SchoolUpdate(APIBase):
     name: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    logo_url: Optional[str] = None
+    established_year: Optional[int] = None
 
 class SchoolOut(SchoolBase):
     id: UUID
     tenant_id: UUID
-    created_at: datetime  
+    created_date: datetime  
