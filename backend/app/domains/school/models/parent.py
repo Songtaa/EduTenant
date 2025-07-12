@@ -14,3 +14,6 @@ class Parent(APIBase, table=True):
 
     user_id: UUID = Field(foreign_key="public.users.id")
     school_id: UUID = Field(foreign_key="schools.id")
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
+
+    school: Optional[School] = Relationship(back_populates="parents")

@@ -13,3 +13,7 @@ class Programme(APIBase, table=True):
 
     classes: List["Class"] = Relationship(back_populates="programme")
     courses: List["Course"] = Relationship(back_populates="programme")
+    school_id: UUID = Field(foreign_key="schools.id")
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
+
+    school: Optional[School] = Relationship(back_populates="programmes")
