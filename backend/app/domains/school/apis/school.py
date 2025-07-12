@@ -56,10 +56,6 @@ async def update_school(
     return school
 
 
-
-
-
-
 @school_router.delete("/{school_id}", status_code=200)
 async def delete_school(
     school_id: UUID,
