@@ -21,11 +21,12 @@ class School(APIBase, table=True):
     logo_url: Optional[str]
     established_year: Optional[int] = Field(default_factory=lambda: datetime.now().year)
 
-    
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
+
     tenant: Optional["Tenant"] = Relationship(back_populates="schools")
     classes: List["Class"] = Relationship(back_populates="school")
     courses: List["Course"] = Relationship(back_populates="school")
     teachers: List["Teacher"] = Relationship(back_populates="school")
     courses: List["Course"] = Relationship(back_populates="school")
     parents: List["Parent"] = Relationship(back_populates="school")
+    programmes: List["Programme"] = Relationship(back_populates="school")
