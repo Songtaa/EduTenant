@@ -3,6 +3,8 @@ from datetime import datetime
 from uuid import uuid4, UUID
 from typing import Optional
 from app.db.base_class import APIBase
+from sqlmodel import Field, Relationship
+
 
 class Parent(APIBase, table=True):
     __tablename__ = "parents"
@@ -15,4 +17,4 @@ class Parent(APIBase, table=True):
     user_id: UUID = Field(foreign_key="public.users.id")
     school_id: UUID = Field(foreign_key="schools.id")
 
-    school: Optional[School] = Relationship(back_populates="parents")
+    school: Optional["School"] = Relationship(back_populates="parents")

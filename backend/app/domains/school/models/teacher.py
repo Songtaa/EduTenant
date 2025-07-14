@@ -19,4 +19,4 @@ class Teacher(APIBase, table=True):
     courses: List["Course"] = Relationship(
         back_populates="teachers", link_model=TeacherCourseLink
     )
-    school: Optional[School] = Relationship(back_populates="teachers")   
+    school: Optional["School"] = Relationship(back_populates="teachers")   

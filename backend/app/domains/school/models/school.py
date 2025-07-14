@@ -27,6 +27,6 @@ class School(APIBase, table=True):
     teachers: List["Teacher"] = Relationship(back_populates="school")
     students: List["Student"] = Relationship(back_populates="school")
     parents: List["Parent"] = Relationship(back_populates="school")
-    classes: List["Classroom"] = Relationship(back_populates="school")
+    classes: List["Class"] = Relationship(back_populates="school")
     courses: List["Course"] = Relationship(back_populates="school")
     programmes: List["Programme"] = Relationship(back_populates="school")

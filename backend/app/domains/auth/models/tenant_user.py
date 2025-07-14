@@ -25,7 +25,7 @@ class TenantUser(APIBase, table=True):
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
     school_id: Optional[UUID] = Field(default=None, foreign_key="schools.id")
 
-    school: Optional[School] = Relationship()
+    school: Optional["School"] = Relationship()
 
     tenant_roles: List["TenantRole"] = Relationship(
         back_populates="users", 

@@ -16,7 +16,7 @@ class Class(APIBase, table=True):
     school_id: UUID = Field(foreign_key="schools.id")
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
 
-    school: Optional[School] = Relationship(back_populates="classes")
+    school: Optional["School"] = Relationship(back_populates="classes")
     programme: Optional["Programme"] = Relationship(back_populates="classes")
     students: List["Student"] = Relationship(back_populates="class_")
 

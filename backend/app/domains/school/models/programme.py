@@ -16,3 +16,4 @@ class Programme(APIBase, table=True):
 
     classes: List["Class"] = Relationship(back_populates="programme")
     courses: List["Course"] = Relationship(back_populates="programme")
+    school: Optional["School"] = Relationship(back_populates="programmes")

@@ -22,5 +22,5 @@ class Student(APIBase, table=True):
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
 
     class_: Optional["Class"] = Relationship(back_populates="students")
-    school: Optional[School] = Relationship(back_populates="students")
+    school: Optional["School"] = Relationship(back_populates="students")
 
