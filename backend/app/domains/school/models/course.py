@@ -11,9 +11,14 @@ class Course(APIBase, table=True):
 
     name: str
     description: Optional[str] = None
+    code: str
+
+    school_id: UUID = Field(foreign_key="schools.id")
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
     programme_id: UUID = Field(foreign_key="programmes.id")
 
     programme: Optional["Programme"] = Relationship(back_populates="courses")
     teachers: List["Teacher"] = Relationship(
         back_populates="courses", link_model=TeacherCourseLink
     )
+    school: Optional[School] = Relationship(back_populates="courses")

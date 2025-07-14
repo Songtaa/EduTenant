@@ -22,4 +22,11 @@ class School(APIBase, table=True):
 
     
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
+
     tenant: Optional["Tenant"] = Relationship(back_populates="schools")
+    teachers: List["Teacher"] = Relationship(back_populates="school")
+    students: List["Student"] = Relationship(back_populates="school")
+    parents: List["Parent"] = Relationship(back_populates="school")
+    classes: List["Classroom"] = Relationship(back_populates="school")
+    courses: List["Course"] = Relationship(back_populates="school")
+    programmes: List["Programme"] = Relationship(back_populates="school")
