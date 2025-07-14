@@ -1,9 +1,10 @@
-from app.domains.school.models.teacher_course import TeacherCourseLink
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
-from uuid import uuid4, UUID
 from typing import List, Optional
+from uuid import UUID
+
+from sqlmodel import Field, Relationship
+
 from app.db.base_class import APIBase
+from app.domains.school.models.teacher_course import TeacherCourseLink
 
 
 class Course(APIBase, table=True):
@@ -16,7 +17,6 @@ class Course(APIBase, table=True):
     school_id: UUID = Field(foreign_key="schools.id")
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
     programme_id: UUID = Field(foreign_key="programmes.id")
-    school_id: UUID = Field(foreign_key="schools.id")
 
     programme: Optional["Programme"] = Relationship(back_populates="courses")
     teachers: List["Teacher"] = Relationship(

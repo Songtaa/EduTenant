@@ -1,9 +1,11 @@
+from typing import Optional
 from uuid import UUID
+
+from sqlmodel import Field, Relationship
+
+from app.db.base_class import APIBase
 from app.domains.auth.models.permission import Permission
 from app.domains.auth.models.users import User
-from sqlmodel import Field, Relationship
-from typing import Optional
-from app.db.base_class import APIBase
 
 
 class UserPermission(APIBase, table=True):

@@ -1,7 +1,8 @@
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
-from uuid import uuid4, UUID
 from typing import List, Optional
+from uuid import UUID
+
+from sqlmodel import Field, Relationship
+
 from app.db.base_class import APIBase
 
 
