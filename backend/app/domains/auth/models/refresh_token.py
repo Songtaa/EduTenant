@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Optional
-from app.db.base_class import APIBase
-from sqlalchemy import Column, DateTime, ForeignKey, String
-from uuid import uuid4, UUID
-from sqlalchemy.orm import relationship
+from uuid import UUID
+
 from sqlmodel import Field, Relationship
 
+from app.db.base_class import APIBase
 
 
 class RefreshToken(APIBase, table=True):

@@ -1,15 +1,13 @@
 # app/domains/auth/models/tenant_user.py
-from uuid import UUID, uuid4
 from typing import List, Optional
-from app.domains.auth.models.user_permissions import UserPermission
-from sqlmodel import SQLModel, Field, Relationship, Column, String
+from uuid import UUID, uuid4
+
 from pydantic import EmailStr
+from sqlmodel import Field, Relationship, Column, String
 
-from app.domains.auth.models.permission import Permission
-
-from app.domains.school.models.tenant_role import TenantUserRole
-from app.domains.school.models.tenant_role import TenantRole
 from app.db.base_class import APIBase
+from app.domains.school.models.tenant_role import TenantRole
+from app.domains.school.models.tenant_role import TenantUserRole
 
 
 class TenantUser(APIBase, table=True):
@@ -28,8 +26,8 @@ class TenantUser(APIBase, table=True):
     school: Optional["School"] = Relationship()
 
     tenant_roles: List["TenantRole"] = Relationship(
-        back_populates="users", 
-        link_model=TenantUserRole, 
+        back_populates="users",
+        link_model=TenantUserRole,
         sa_relationship_kwargs={"viewonly": True}
     )
     tenant_user_permissions: List["TenantUserPermission"] = Relationship(
