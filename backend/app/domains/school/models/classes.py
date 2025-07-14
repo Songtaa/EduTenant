@@ -10,9 +10,12 @@ class Class(APIBase, table=True):
     __tablename__ = "classes"
     
     name: str
-    year: int
+    academic_year: int
     programme_id: UUID = Field(foreign_key="programmes.id")
     school_id: UUID = Field(foreign_key="schools.id")
+
+    school_id: UUID = Field(foreign_key="schools.id")
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
 
     school: Optional["School"] = Relationship(back_populates="classes")
     programme: Optional["Programme"] = Relationship(back_populates="classes")

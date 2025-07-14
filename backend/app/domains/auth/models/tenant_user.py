@@ -22,12 +22,16 @@ class TenantUser(APIBase, table=True):
     is_superuser: bool = Field(default=False)
     full_name: Optional[str] = Field(default=None, max_length=255)
 
+    tenant_id: UUID = Field(foreign_key="public.tenants.id")
+    school_id: Optional[UUID] = Field(default=None, foreign_key="schools.id")
+
+    school: Optional["School"] = Relationship()
+
     tenant_roles: List["TenantRole"] = Relationship(
         back_populates="users", 
         link_model=TenantUserRole, 
         sa_relationship_kwargs={"viewonly": True}
     )
-
     tenant_user_permissions: List["TenantUserPermission"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "[TenantUserPermission.user_id]"}

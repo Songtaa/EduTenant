@@ -24,9 +24,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
         self.session = session
 
-    # Basic CRUD operations
-    def get(self, id: Any) -> Optional[ModelType]:
-        return self.session.get(self.model, id)
+    async def get(self, id: Any) -> Optional[ModelType]:
+        result = await self.session.execute(
+            select(self.model).where(self.model.id == id)
+        )
+        return result.scalars().first()
 
     def get_all(self, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
         return self.session.exec(
@@ -34,9 +36,14 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         ).all()
 
    
-    async def create(self, obj_in: CreateSchemaType) -> ModelType:
+
+    async def create(self, obj_in: Union[CreateSchemaType, dict]) -> ModelType:
         try:
-            obj_data = obj_in.model_dump()
+            if isinstance(obj_in, dict):
+                obj_data = obj_in
+            else:
+                obj_data = obj_in.model_dump()
+
             db_obj = self.model(**obj_data)
             self.session.add(db_obj)
             await self.session.commit()
@@ -51,6 +58,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 status_code=500,
                 detail=f"{type(e).__name__}: {str(e)}"
             )
+
 
     async def update(
         self, 
@@ -71,21 +79,38 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.session.refresh(db_obj)
         return db_obj
 
-    def delete(self, id: Any) -> bool:
-        db_obj = self.get(id)
+    # async def delete(self, id: Any) -> bool:
+    #     db_obj = self.get(id)
+    #     if db_obj:
+    #         self.session.delete(db_obj)
+    #         self.session.commit()
+    #         return True
+    #     return False
+
+
+    async def delete(self, id: Any) -> bool:
+        stmt = select(self.model).where(self.model.id == id)
+        result = await self.session.execute(stmt)
+        db_obj = result.scalars().first()
+
         if db_obj:
-            self.session.delete(db_obj)
-            self.session.commit()
+            await self.session.delete(db_obj)
+            await self.session.commit()
             return True
+
         return False
 
-    # Extended query methods
-    def get_by_ids(self, ids: List[Any]) -> List[ModelType]:
+    async def get_by_id(self, id: UUID) -> Optional[ModelType]:
+        stmt = select(self.model).where(self.model.id == id)
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
+    
+    async def get_by_ids(self, ids: List[Any]) -> List[ModelType]:
         if not ids:
             return []
-        return self.session.exec(
-            select(self.model).where(self.model.id.in_(ids))
-        ).all()
+        stmt = select(self.model).where(self.model.id.in_([ids]))
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     def get_by_name(self, name: str) -> Optional[ModelType]:
         return self.session.exec(

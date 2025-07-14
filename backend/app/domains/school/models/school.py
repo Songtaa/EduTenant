@@ -15,18 +15,18 @@ class School(APIBase, table=True):
     name: str = Field(max_length=255)
     address: str = Field(max_length=500)
     phone: str = Field(max_length=50)
-    tenant_id: Optional[UUID] = Field(index=True)
     contact_email: Optional[str]
     address: Optional[str]
     logo_url: Optional[str]
     established_year: Optional[int] = Field(default_factory=lambda: datetime.now().year)
 
+    
     tenant_id: UUID = Field(foreign_key="public.tenants.id")
 
     tenant: Optional["Tenant"] = Relationship(back_populates="schools")
+    teachers: List["Teacher"] = Relationship(back_populates="school")
+    students: List["Student"] = Relationship(back_populates="school")
+    parents: List["Parent"] = Relationship(back_populates="school")
     classes: List["Class"] = Relationship(back_populates="school")
     courses: List["Course"] = Relationship(back_populates="school")
-    teachers: List["Teacher"] = Relationship(back_populates="school")
-    courses: List["Course"] = Relationship(back_populates="school")
-    parents: List["Parent"] = Relationship(back_populates="school")
     programmes: List["Programme"] = Relationship(back_populates="school")

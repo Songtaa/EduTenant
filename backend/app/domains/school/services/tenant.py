@@ -73,6 +73,7 @@ class TenantService:
         if not tenant:
             raise HTTPException(404, "Tenant not found")
         return TenantRead.from_orm(tenant)
+    
 
     async def update_tenant(self, tenant_id: UUID, update_data: TenantUpdate) -> TenantSchema:
         """Update tenant details"""
