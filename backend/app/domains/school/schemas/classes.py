@@ -3,16 +3,14 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from app.db.base_class import APIBase, UpdateBase
+from app.db.base_class import UpdateBase, SchoolRelatedAPIBase
 
 
-class ClassesBase(APIBase):
+class ClassesBase(SchoolRelatedAPIBase):
     """Classes Base Schema"""
     name: Optional[str] = None
     academic_year: Optional[int] = None
     programme_id: Optional[UUID] = None
-    school_id: Optional[UUID] = None
-    tenant_id: Optional[UUID] = None
 
 
 class ClassesCreate(BaseModel):

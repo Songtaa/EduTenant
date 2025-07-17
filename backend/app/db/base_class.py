@@ -4,7 +4,7 @@ from functools import reduce
 from typing import Optional
 
 import inflect
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from sqlalchemy.ext.declarative import declared_attr
 from sqlmodel import SQLModel, Field
 
@@ -37,6 +37,11 @@ class APIBase(Base):  # `table=True` makes it a table model in SQLModel
     updated_date: Optional[datetime] = Field(
         default_factory=datetime.now, nullable=False
     )
+
+
+class SchoolRelatedAPIBase(APIBase):
+    school_id: Optional[UUID4] = None
+    tenant_id: Optional[UUID4] = None
 
 
 class UpdateBase(BaseModel):
