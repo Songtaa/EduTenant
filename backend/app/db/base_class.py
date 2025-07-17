@@ -1,11 +1,12 @@
-from typing import Optional
 import uuid
 from datetime import datetime
 from functools import reduce
+from typing import Optional
 
 import inflect
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, UUID4
 from sqlalchemy.ext.declarative import declared_attr
+from sqlmodel import SQLModel, Field
 
 
 # Function to convert CamelCase to snake_case
@@ -37,6 +38,17 @@ class APIBase(Base):  # `table=True` makes it a table model in SQLModel
         default_factory=datetime.now, nullable=False
     )
 
+
+class SchoolRelatedAPIBase(APIBase):
+    school_id: Optional[UUID4] = None
+    tenant_id: Optional[UUID4] = None
+
+
+class UpdateBase(BaseModel):
+    class Config:
+        exclude_unset = True
+        exclude_none = True
+        exclude_defaults = True
 
 # import typing as t
 # import uuid
