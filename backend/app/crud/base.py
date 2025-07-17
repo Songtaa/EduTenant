@@ -1,12 +1,13 @@
 # app/repositories/base.py
 from typing import TypeVar, Generic, Optional, Any, List, Dict, Union
 from uuid import UUID
-from sqlmodel import Session, SQLModel, select
-from sqlalchemy.exc import IntegrityError
+
 from fastapi import HTTPException
-import sys
-from sqlalchemy.ext.asyncio.session import AsyncSession
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlmodel import select
+
 from app.db.base_class import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -30,11 +31,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return result.scalars().first()
 
-    def get_all(self, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
-        return self.session.exec(
+    async def get_all(self, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
+        result = await self.session.execute(
             select(self.model).offset(skip).limit(limit)
-        ).all()
-
+        )
+        return result.scalars().all()
    
 
     async def create(self, obj_in: Union[CreateSchemaType, dict]) -> ModelType:
@@ -69,14 +70,13 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.dict(exclude_unset=True)
-
+            update_data = obj_in.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_obj, field, value)
         
         self.session.add(db_obj)
-        self.session.commit()
-        self.session.refresh(db_obj)
+        await self.session.commit()
+        await self.session.refresh(db_obj)
         return db_obj
 
     # async def delete(self, id: Any) -> bool:

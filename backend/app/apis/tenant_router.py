@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends
+
+from app.domains.school.apis.classes import class_router
 # from app.domains.auth.apis.users_router import user_router
 # from app.domains.auth.apis.role import role_router
 # from app.domains.auth.apis.permission import permission_router
@@ -12,3 +14,4 @@ tenant_router = APIRouter(dependencies=[Depends(require_tenant_context)])
 # tenant_router.include_router(permission_router, prefix="/permissions", tags=["Permissions"])
 tenant_router.include_router(service_router, prefix="/services", tags=["Services"])
 tenant_router.include_router(school_router, prefix="/schools", tags=["Schools"])
+tenant_router.include_router(class_router, prefix="/schools/{school_id}", tags=["Classes"])
