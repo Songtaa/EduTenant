@@ -14,7 +14,7 @@ from app.domains.auth.models.users import User
 from app.db.redis import token_in_blocklist
 
 # from src.db.redis import token_in_blocklist
-
+from app.utils.dependencies import get_master_session_dep
 from app.domains.auth.services.user_service import UserService
 from app.domains.auth.repository.user_repository import UserRepository
 from app.utils.security import Security
@@ -26,8 +26,10 @@ from app.utils.errors import (
     AccountNotVerified,
 )
 
+
 # sessionDep = Annotated[AsyncSession, Depends(get_master_session)]
-sessionDep = Annotated[AsyncSession, Depends(db_session_dependency)]
+# sessionDep = Annotated[AsyncSession, Depends(db_session_dependency)]
+sessionDep = Annotated[AsyncSession, Depends(get_master_session_dep)]
 
 
 class TokenBearer(HTTPBearer):
@@ -98,8 +100,9 @@ async def get_current_user(
     if await blocklist_repo.is_token_blocked(jti, tenant):
         raise HTTPException(status_code=401, detail="Token has been revoked")
 
-    user_email = token_data["user"]["email"]
-    user_service = UserService(session)
+    # Get email directly from token_data, not from token_data["user"]
+    user_email = token_data["email"]
+    user_service = UserService(session, User)
     user = await user_service.repository.get_user_by_email(user_email)
 
     if user is None:

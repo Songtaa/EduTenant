@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.config.settings import settings
 from app.domains.auth.repository.user_repository import UserRepository
+from app.domains.auth.models.users import User
 from fastapi.responses import JSONResponse
 from app.utils.errors import InvalidCredentials
 from app.utils.security import Security
@@ -15,8 +16,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class AuthService:
-    def __init__(self, session):
-        self.repository = UserRepository(session)
+    def __init__(self, session: AsyncSession):
+        self.repository = UserRepository(User, session)
         self.blocklist_repo = TokenBlocklistRepository(session)
 
 

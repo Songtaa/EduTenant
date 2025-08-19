@@ -70,7 +70,7 @@ class Security:
 
         return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
-    # decode token
+   # decode token
     @staticmethod
     def decode_token(token: str) -> dict:
         try:
@@ -81,7 +81,7 @@ class Security:
             )
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token expired")
-        except jwt.JWTError:
+        except jwt.PyJWTError:
             logging.error("Token decode failed", exc_info=True)
             return None
 
